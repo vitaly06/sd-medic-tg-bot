@@ -1,0 +1,22 @@
+# Dockerfile для разработки
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Устанавливаем зависимости глобально для разработки
+RUN npm install -g @nestjs/cli
+
+# Копируем package.json
+COPY package.json yarn.lock ./
+
+# Устанавливаем зависимости
+RUN yarn install
+
+# Копируем остальные файлы (будут монтироваться через volume)
+COPY . .
+
+# Открываем порт
+EXPOSE 3000
+
+# Команда запуска будет в docker-compose
+CMD ["yarn", "start:dev"]

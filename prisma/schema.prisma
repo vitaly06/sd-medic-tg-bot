@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id Int @id @default(autoincrement())
+  tgId String @unique
+  firstName String?
+  username String?
+  lastName String?
+  region String?
+  phone String?
+
+  roleId Int
+  role Role @relation(fields: [roleId], references: [id])
+  
+  supportTickets SupportTicket[]
+  supportMessages SupportMessage[]
+  cartItems CartItem[]
+  orders Order[]
+  profile UserProfile?
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  name String @unique
+  users User[]
+}
+
+model Faq {
+  id Int @id @default(autoincrement())
+  question String @unique
+  answer String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  description String
+  images String[]
+  link String?
+  price Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  cartItems CartItem[]
+  orderItems OrderItem[]
+}
+
+model SupportTicket {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  
+  status String @default("open") // open, in_progress, closed
+  subject String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  closedAt DateTime?
+  
+  messages SupportMessage[]
+}
+
+model SupportMessage {
+  id Int @id @default(autoincrement())
+  ticketId Int
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  
+  message String
+  photos String[]
+  
+  createdAt DateTime @default(now())
+}
+
+model CartItem {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity Int @default(1)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, productId])
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  
+  status String @default("pending") // pending, confirmed, processing, completed, cancelled
+  totalPrice Float
+  
+  contactInfo String?
+  deliveryAddress String?
+  comment String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  items OrderItem[]
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+  
+  quantity Int
+  price Float
+  
+  createdAt DateTime @default(now())
+}
+
+model UserProfile {
+  id Int @id @default(autoincrement())
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Дата заключения МСЭ по ИПРа
+  mseDate DateTime?
+  
+  // Дата первого получения ТСР
+  firstTsrDate DateTime?
+  
+  // Способ получения ТСР: "выдача" или "сертификат"
+  tsrMethod String?
+  
+  // Виды назначенных ТСР (JSON или текст с перечислением)
+  tsrTypes String?
+  
+  // Периодичность получения ТСР в месяцах (по умолчанию 3 месяца)
+  tsrPeriodMonths Int @default(3)
+  
+  // Дата следующего получения ТСР (рассчитывается автоматически)
+  nextTsrDate DateTime?
+  
+  // За сколько дней до срока напоминать (по умолчанию 21 день = 3 недели)
+  reminderDaysBefore Int @default(21)
+  
+  // Дата последнего напоминания (чтобы не дублировать)
+  lastReminderSent DateTime?
+  
+  // Уведомление включено
+  notificationsEnabled Boolean @default(true)
+  
+  // Дополнительные данные (JSON для расширяемости)
+  additionalData String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
