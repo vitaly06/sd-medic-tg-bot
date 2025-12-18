@@ -87,7 +87,12 @@ export const UserScalarFieldEnum = {
   lastName: 'lastName',
   region: 'region',
   phone: 'phone',
-  roleId: 'roleId'
+  isBlocked: 'isBlocked',
+  blockedAt: 'blockedAt',
+  blockedReason: 'blockedReason',
+  roleId: 'roleId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -131,6 +136,8 @@ export const SupportTicketScalarFieldEnum = {
   userId: 'userId',
   status: 'status',
   subject: 'subject',
+  hasUnreadUserMessages: 'hasUnreadUserMessages',
+  hasUnreadAdminMessages: 'hasUnreadAdminMessages',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   closedAt: 'closedAt'

@@ -15,14 +15,12 @@ import { ProfileService } from './services/profile.service';
 const MAIN_KEYBOARD = Markup.keyboard([
   ['📚 Каталог', '🛒 Корзина'],
   ['Поддержка', '💬 Живой чат'],
+  ['👤 Профиль'],
 ]).resize();
 const ADMIN_KEYBOARD = Markup.keyboard([
-  'Настройка поддержки',
-  'Управление пользователями',
-  'Товары',
-  'Рассылка',
-  '💬 Обращения',
-  '📄 Экспорт базы',
+  ['Настройка поддержки', 'Управление пользователями'],
+  ['Товары', 'Рассылка'],
+  ['💬 Обращения', '📄 Экспорт базы'],
 ]).resize();
 const SUPPORT_KEYBOARD = Markup.keyboard([
   'Настройка поддержки',
@@ -32,8 +30,8 @@ const SUPPORT_KEYBOARD = Markup.keyboard([
 @Update()
 @Injectable()
 export class BotService {
-  agree = '✅';
-  disagree = '❌';
+  agree = '✅ Да, согласен';
+  disagree = '❌ Нет, не согласен';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -57,6 +55,17 @@ export class BotService {
     });
 
     if (checkUser) {
+      // Проверка блокировки пользователя
+      if (checkUser.isBlocked) {
+        const reason = checkUser.blockedReason
+          ? `\n\nПричина: ${checkUser.blockedReason}`
+          : '';
+        await ctx.reply(
+          `🚫 Ваш аккуратный заблокирован.${reason}\n\nДля разблокировки обратитесь в службу поддержки.`,
+        );
+        return;
+      }
+
       if (checkUser.role.name == 'admin') {
         await ctx.reply('Добро пожаловать, Администратор!', ADMIN_KEYBOARD);
         return;
@@ -120,6 +129,8 @@ export class BotService {
 
     if (user?.role.name === 'admin') {
       await ctx.reply('Главное меню', ADMIN_KEYBOARD);
+    } else if (user?.role.name === 'support') {
+      await ctx.reply('Главное меню', SUPPORT_KEYBOARD);
     } else {
       await ctx.reply('Главное меню', MAIN_KEYBOARD);
     }
@@ -143,6 +154,123 @@ export class BotService {
   @Hears('🗑 Удалить сотрудника')
   async deleteUserStart(@Ctx() ctx: Context) {
     await this.adminService.startDeleteUser(ctx);
+  }
+
+  @Hears('🔍 Найти пользователя')
+  async searchUserStart(@Ctx() ctx: Context) {
+    await this.adminService.searchUsers(ctx);
+  }
+
+  @Hears('🔗 Пригласительная ссылка')
+  async generateInvite(@Ctx() ctx: Context) {
+    await this.adminService.generateInviteLink(ctx);
+  }
+
+  @Hears('🚫 Заблокировать')
+  async blockUserAction(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    if (state?.action === 'user_action_menu' && state.data?.user) {
+      this.stateService.setState(ctx.from.id, {
+        action: 'block_user_reason',
+        data: state.data,
+      });
+      await ctx.reply(
+        'Введите причину блокировки или напишите "пропустить":',
+        Markup.removeKeyboard(),
+      );
+    }
+  }
+
+  @Hears('✅ Разблокировать')
+  async unblockUserAction(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    if (state?.action === 'user_action_menu' && state.data?.user) {
+      await this.adminService.unblockUser(ctx, state.data.user.id);
+    }
+  }
+
+  @Hears('👤 Изменить роль')
+  async changeUserRoleAction(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    if (state?.action === 'user_action_menu' && state.data?.user) {
+      this.stateService.setState(ctx.from.id, {
+        action: 'change_user_role',
+        data: state.data,
+      });
+      await ctx.reply(
+        `Выберите новую роль для пользователя:`,
+        Markup.keyboard(['admin', 'support', 'user', '◀️ Назад'])
+          .oneTime()
+          .resize(),
+      );
+    }
+  }
+
+  @Hears('� Редактировать профиль')
+  async editUserProfileAction(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+
+    // Если это админ редактирует профиль пользователя
+    if (state?.action === 'user_action_menu' && state.data?.user) {
+      const targetUser = state.data.user;
+      const profile = await this.profileService.getProfile(targetUser.id);
+      const profileText = profile
+        ? this.profileService.formatProfile(profile)
+        : '❌ Профиль не заполнен';
+
+      this.stateService.setState(ctx.from.id, {
+        action: 'admin_edit_user_profile',
+        data: { user: targetUser },
+      });
+
+      const keyboard = Markup.keyboard([
+        ['📅 Дата МСЭ', '📅 Дата первого ТСР'],
+        ['📅 След. получение ТСР'],
+        ['📋 Способ получения', '📋 Виды ТСР'],
+        ['⏱ Периодичность ТСР', '⏰ Срок напоминания'],
+        ['◀️ Назад'],
+      ]).resize();
+
+      await ctx.reply(
+        `Редактирование профиля пользователя @${targetUser.username || targetUser.firstName}\n\n${profileText}\n\n✏️ Выберите поле для редактирования:`,
+        keyboard,
+      );
+      return;
+    }
+  }
+
+  @Hears('�🗑 Удалить пользователя')
+  async deleteUserAction(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    if (state?.action === 'user_action_menu' && state.data?.user) {
+      this.stateService.setState(ctx.from.id, {
+        action: 'confirm_delete_user',
+        data: state.data,
+      });
+      await ctx.reply(
+        `⚠️ ВНИМАНИЕ!\n\nВы действительно хотите удалить пользователя?\nЭто действие необратимо!`,
+        Markup.keyboard(['✅ Да, удалить', '❌ Отмена']).oneTime().resize(),
+      );
+    }
+  }
+
+  @Hears('✅ Да, удалить')
+  async confirmDeleteUser(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    if (state?.action === 'confirm_delete_user' && state.data?.user) {
+      await this.adminService.deleteUser(ctx, state.data.user.id);
+    }
+  }
+
+  @Hears('👤 Профиль')
+  async onProfileButton(@Ctx() ctx: Context) {
+    await this.onProfile(ctx);
   }
 
   // Товары
@@ -220,8 +348,12 @@ export class BotService {
     );
 
     if (activeTicket) {
+      // Отмечаем сообщения как прочитанные пользователем
+      await this.supportService.markAsReadByUser(activeTicket.id);
+
+      const unreadIndicator = activeTicket.hasUnreadAdminMessages ? '🔴 ' : '';
       await ctx.reply(
-        'У вас уже есть активное обращение в поддержку.\n\nОтправьте сообщение, и оно будет передано в службу поддержки.',
+        `${unreadIndicator}У вас уже есть активное обращение в поддержку.\n\nОтправьте сообщение, и оно будет передано в службу поддержки.`,
         Markup.keyboard([['◀️ Назад']]).resize(),
       );
       return;
@@ -349,8 +481,13 @@ export class BotService {
   @Hears('⏱ Периодичность ТСР')
   async onEditTsrPeriod(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_tsr_period',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '⏱ Укажите периодичность получения ТСР в месяцах:\n\n' +
@@ -364,8 +501,13 @@ export class BotService {
   @Hears('⏰ Срок напоминания')
   async onEditReminderDays(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_reminder_days',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '⏰ За сколько дней до срока напоминать?\n\n' +
@@ -380,8 +522,15 @@ export class BotService {
   @Hears('📅 Дата МСЭ')
   async onEditMseDate(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+
+    // Сохраняем информацию о редактируемом пользователе, если это админ
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_mse_date',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '📅 Введите новую дату заключения МСЭ по ИПРа (формат: ДД.ММ.ГГГГ)\nИли напишите "пропустить" чтобы очистить:',
@@ -391,8 +540,13 @@ export class BotService {
   @Hears('📅 Дата первого ТСР')
   async onEditFirstTsrDate(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_first_tsr_date',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '📅 Введите новую дату первого получения ТСР (формат: ДД.ММ.ГГГГ)\nИли напишите "пропустить" чтобы очистить:',
@@ -402,8 +556,13 @@ export class BotService {
   @Hears('📅 След. получение ТСР')
   async onEditNextTsrDate(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_next_tsr_date',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '📅 Введите новую дату следующего получения ТСР (формат: ДД.ММ.ГГГГ)\nИли напишите "пропустить" чтобы очистить:',
@@ -413,8 +572,13 @@ export class BotService {
   @Hears('📋 Способ получения')
   async onEditTsrMethod(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_tsr_method',
+      data: targetUser ? { targetUser } : undefined,
     });
     const keyboard = Markup.keyboard([
       ['выдача', 'сертификат'],
@@ -429,8 +593,13 @@ export class BotService {
   @Hears('📋 Виды ТСР')
   async onEditTsrTypes(@Ctx() ctx: Context) {
     if (!ctx.from) return;
+    const state = this.stateService.getState(ctx.from.id);
+    const targetUser =
+      state?.action === 'admin_edit_user_profile' ? state.data.user : null;
+
     this.stateService.setState(ctx.from.id, {
       action: 'edit_profile_tsr_types',
+      data: targetUser ? { targetUser } : undefined,
     });
     await ctx.reply(
       '📋 Введите новые виды назначенных ТСР (через запятую)\nНапример: коляска, протезы, ортопедическая обувь\nИли напишите "пропустить" чтобы очистить:',
@@ -611,12 +780,26 @@ export class BotService {
     if (ctx.message && 'text' in ctx.message && ctx.from) {
       const state = this.stateService.getState(ctx.from.id);
 
-      // === ОБРАБОТКА ПРОСМОТРА ОБРАЩЕНИЙ (для поддержки) ===
+      // === ГЛОБАЛЬНАЯ ПРОВЕРКА БЛОКИРОВКИ ===
 
-      const user = await this.prisma.user.findUnique({
+      const currentUser = await this.prisma.user.findUnique({
         where: { tgId: String(ctx.from.id) },
         include: { role: true },
       });
+
+      if (currentUser?.isBlocked) {
+        const reason = currentUser.blockedReason
+          ? `\n\nПричина: ${currentUser.blockedReason}`
+          : '';
+        await ctx.reply(
+          `🚫 Ваш аккуратный заблокирован.${reason}\n\nДля разблокировки обратитесь в службу поддержки.`,
+        );
+        return;
+      }
+
+      // === ОБРАБОТКА ПРОСМОТРА ОБРАЩЕНИЙ (для поддержки) ===
+
+      const user = currentUser;
 
       if (
         user &&
@@ -626,6 +809,9 @@ export class BotService {
         if (!isNaN(ticketId)) {
           const ticket = await this.supportService.getTicketById(ticketId);
           if (ticket) {
+            // Отмечаем сообщения как прочитанные админом
+            await this.supportService.markAsReadByAdmin(ticketId);
+
             const messages = this.supportService.formatMessages(
               ticket.messages,
             );
@@ -861,7 +1047,7 @@ export class BotService {
             action: 'profile_mse_date',
           });
           await ctx.reply(
-            `✅ Регион "${ctx.message.text}" сохранен!\n\n📋 Теперь давайте заполним вашу анкету для получения ТСР.\n\n1️⃣ Укажите дату заключения МСЭ по ИПРа (в формате ДД.ММ.ГГГГ):\n\nНапример: 15.01.2024\n\nИли напишите "пропустить" для заполнения позже.`,
+            `✅ Регион "${ctx.message.text}" сохранен!\n\n📋 Теперь давайте заполним вашу анкету для получения ТСР.\n\n1️⃣ Укажите дату заключения МСЭ по ИПРа (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nНапример: 15.01.2024\n\nИли напишите "пропустить" для заполнения позже.`,
           );
         }
         return;
@@ -892,7 +1078,7 @@ export class BotService {
         });
 
         await ctx.reply(
-          '2️⃣ Укажите дату первого получения ТСР (в формате ДД.ММ.ГГГГ):\n\nИли напишите "пропустить".',
+          '2️⃣ Укажите дату первого получения ТСР (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nИли напишите "пропустить".',
         );
         return;
       }
@@ -995,9 +1181,13 @@ export class BotService {
       // === ОБРАБОТКА РЕДАКТИРОВАНИЯ ПРОФИЛЯ ===
 
       if (state?.action === 'edit_profile_mse_date') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        // Определяем, чей профиль редактируем
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1015,20 +1205,27 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          '✅ Дата МСЭ обновлена!',
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Дата МСЭ обновлена!${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
 
       if (state?.action === 'edit_profile_first_tsr_date') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1048,20 +1245,27 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          '✅ Дата первого получения ТСР обновлена!',
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Дата первого получения ТСР обновлена!${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
 
       if (state?.action === 'edit_profile_next_tsr_date') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1081,20 +1285,27 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          '✅ Дата следующего получения ТСР обновлена!',
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Дата следующего получения ТСР обновлена!${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
 
       if (state?.action === 'edit_profile_tsr_method') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1107,20 +1318,27 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          '✅ Способ получения ТСР обновлен!',
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Способ получения ТСР обновлен!${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
 
       if (state?.action === 'edit_profile_tsr_types') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1133,20 +1351,27 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          '✅ Виды ТСР обновлены!',
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Виды ТСР обновлены!${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
 
       if (state?.action === 'edit_profile_tsr_period') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1176,13 +1401,17 @@ export class BotService {
 
           this.stateService.deleteState(ctx.from.id);
 
+          const keyboard = targetUser
+            ? ADMIN_KEYBOARD
+            : Markup.keyboard([
+                ['✏️ Редактировать профиль'],
+                ['◀️ Назад'],
+              ]).resize();
+
           await ctx.reply(
             `✅ Периодичность обновлена: каждые ${periodMonths} мес.\n\n` +
-              `Дата следующего получения пересчитана автоматически.`,
-            Markup.keyboard([
-              ['✏️ Редактировать профиль'],
-              ['◀️ Назад'],
-            ]).resize(),
+              `Дата следующего получения пересчитана автоматически.${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+            keyboard,
           );
         } catch (error) {
           await ctx.reply(
@@ -1193,9 +1422,12 @@ export class BotService {
       }
 
       if (state?.action === 'edit_profile_reminder_days') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
+        const targetUser = state.data?.targetUser;
+        const user = targetUser
+          ? targetUser
+          : await this.prisma.user.findUnique({
+              where: { tgId: String(ctx.from.id) },
+            });
 
         if (!user) return;
 
@@ -1226,12 +1458,16 @@ export class BotService {
 
         this.stateService.deleteState(ctx.from.id);
 
+        const keyboard = targetUser
+          ? ADMIN_KEYBOARD
+          : Markup.keyboard([
+              ['✏️ Редактировать профиль'],
+              ['◀️ Назад'],
+            ]).resize();
+
         await ctx.reply(
-          `✅ Срок напоминания обновлен: за ${reminderDays} дней до срока`,
-          Markup.keyboard([
-            ['✏️ Редактировать профиль'],
-            ['◀️ Назад'],
-          ]).resize(),
+          `✅ Срок напоминания обновлен: за ${reminderDays} дней до срока${targetUser ? ` (пользователь: @${targetUser.username || targetUser.firstName})` : ''}`,
+          keyboard,
         );
         return;
       }
@@ -1276,6 +1512,53 @@ export class BotService {
           ctx.message.text,
           state.data.employees,
         );
+        return;
+      }
+
+      // === НОВЫЕ ОБРАБОТЧИКИ ПОИСКА И УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ ===
+
+      if (state?.action === 'search_users') {
+        await this.adminService.handleSearchUsers(ctx, ctx.message.text);
+        return;
+      }
+
+      if (state?.action === 'select_user_action') {
+        if (state.data?.users) {
+          await this.adminService.handleSelectUserAction(
+            ctx,
+            ctx.message.text,
+            state.data.users,
+          );
+        }
+        return;
+      }
+
+      if (state?.action === 'block_user_reason') {
+        if (state.data?.user) {
+          const reason =
+            ctx.message.text.toLowerCase() === 'пропустить'
+              ? undefined
+              : ctx.message.text;
+          await this.adminService.blockUser(ctx, state.data.user.id, reason);
+        }
+        return;
+      }
+
+      if (state?.action === 'change_user_role') {
+        if (state.data?.user) {
+          const role = ctx.message.text.toLowerCase();
+          if (['admin', 'support', 'user'].includes(role)) {
+            await this.adminService.handleEditUserRole(
+              ctx,
+              role,
+              state.data.user,
+            );
+          } else {
+            await ctx.reply(
+              '❌ Неверная роль. Выберите: admin, support или user',
+            );
+          }
+        }
         return;
       }
 

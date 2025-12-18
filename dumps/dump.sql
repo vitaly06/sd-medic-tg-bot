@@ -17,6 +17,22 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON SCHEMA public IS '';
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -296,6 +312,8 @@ CREATE TABLE public."SupportTicket" (
     "userId" integer NOT NULL,
     status text DEFAULT 'open'::text NOT NULL,
     subject text,
+    "hasUnreadUserMessages" boolean DEFAULT false NOT NULL,
+    "hasUnreadAdminMessages" boolean DEFAULT false NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "closedAt" timestamp(3) without time zone
@@ -336,9 +354,14 @@ CREATE TABLE public."User" (
     "firstName" text,
     username text,
     "lastName" text,
-    "roleId" integer NOT NULL,
+    region text,
     phone text,
-    region text
+    "isBlocked" boolean DEFAULT false NOT NULL,
+    "blockedAt" timestamp(3) without time zone,
+    "blockedReason" text,
+    "roleId" integer NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
@@ -355,14 +378,14 @@ CREATE TABLE public."UserProfile" (
     "firstTsrDate" timestamp(3) without time zone,
     "tsrMethod" text,
     "tsrTypes" text,
+    "tsrPeriodMonths" integer DEFAULT 3 NOT NULL,
     "nextTsrDate" timestamp(3) without time zone,
-    "notificationsEnabled" boolean DEFAULT true NOT NULL,
-    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "updatedAt" timestamp(3) without time zone NOT NULL,
-    "additionalData" text,
-    "lastReminderSent" timestamp(3) without time zone,
     "reminderDaysBefore" integer DEFAULT 21 NOT NULL,
-    "tsrPeriodMonths" integer DEFAULT 3 NOT NULL
+    "lastReminderSent" timestamp(3) without time zone,
+    "notificationsEnabled" boolean DEFAULT true NOT NULL,
+    "additionalData" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
 );
 
 
@@ -411,6 +434,24 @@ ALTER SEQUENCE public."User_id_seq" OWNER TO postgres;
 
 ALTER SEQUENCE public."User_id_seq" OWNED BY public."User".id;
 
+
+--
+-- Name: _prisma_migrations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public._prisma_migrations (
+    id character varying(36) NOT NULL,
+    checksum character varying(64) NOT NULL,
+    finished_at timestamp with time zone,
+    migration_name character varying(255) NOT NULL,
+    logs text,
+    rolled_back_at timestamp with time zone,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    applied_steps_count integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public._prisma_migrations OWNER TO postgres;
 
 --
 -- Name: CartItem id; Type: DEFAULT; Schema: public; Owner: postgres
@@ -495,7 +536,8 @@ COPY public."CartItem" (id, "userId", "productId", quantity, "createdAt", "updat
 --
 
 COPY public."Faq" (id, question, answer, "createdAt", "updatedAt") FROM stdin;
-1	test1	answer1	2025-12-06 16:42:08.453	2025-12-06 16:42:08.453
+2	вопрос 1	ответ 1	2025-12-18 14:44:52.455	2025-12-18 14:44:49.374
+3	вопрос 2	ответ 2	2025-12-18 14:45:08.27	2025-12-18 14:45:10.1
 \.
 
 
@@ -504,7 +546,6 @@ COPY public."Faq" (id, question, answer, "createdAt", "updatedAt") FROM stdin;
 --
 
 COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliveryAddress", comment, "createdAt", "updatedAt") FROM stdin;
-1	2	pending	6000	+79510341677	г. Оренбург, Самолётная 89	\N	2025-12-11 18:09:38.514	2025-12-11 18:09:38.514
 \.
 
 
@@ -513,7 +554,6 @@ COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliver
 --
 
 COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt") FROM stdin;
-1	1	2	2	3000	2025-12-11 18:09:38.514
 \.
 
 
@@ -522,7 +562,6 @@ COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt
 --
 
 COPY public."Product" (id, name, description, images, link, price, "createdAt", "updatedAt") FROM stdin;
-2	футболка	футболка\nкстати работает форматирование\n     отсууууп	{AgACAgIAAxkBAAICw2k0XnXbIWjbal6oI4hIterc14gJAAJKE2sb5TuhSXiFF8Oalfy6AQADAgADeAADNgQ}	\N	3000	2025-12-06 16:52:46.056	2025-12-06 16:52:46.056
 \.
 
 
@@ -531,10 +570,10 @@ COPY public."Product" (id, name, description, images, link, price, "createdAt", 
 --
 
 COPY public."Role" (id, name) FROM stdin;
-1	user
-2	support
+2	main admin
 3	admin
-4	main admin
+4	support
+1	user
 \.
 
 
@@ -543,10 +582,8 @@ COPY public."Role" (id, name) FROM stdin;
 --
 
 COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "createdAt") FROM stdin;
-1	1	2	как дела?	{}	2025-12-11 18:06:57.583
-2	1	1	всё отлично	{}	2025-12-11 18:07:55.652
-3	1	2	test1	{}	2025-12-11 18:10:38.938
-4	1	2	test1	{}	2025-12-11 18:16:19.025
+1	1	1	бебебебе	{}	2025-12-18 14:37:19.961
+2	1	2	и вам бебебебе	{}	2025-12-18 14:40:16.513
 \.
 
 
@@ -554,8 +591,9 @@ COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "create
 -- Data for Name: SupportTicket; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."SupportTicket" (id, "userId", status, subject, "createdAt", "updatedAt", "closedAt") FROM stdin;
-1	2	in_progress	\N	2025-12-11 18:06:45.355	2025-12-11 18:07:55.664	\N
+COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessages", "hasUnreadAdminMessages", "createdAt", "updatedAt", "closedAt") FROM stdin;
+2	2	open	\N	f	f	2025-12-18 14:38:15.081	2025-12-18 14:38:15.081	\N
+1	1	in_progress	\N	f	f	2025-12-18 14:37:13.891	2025-12-18 14:46:51.637	\N
 \.
 
 
@@ -563,9 +601,9 @@ COPY public."SupportTicket" (id, "userId", status, subject, "createdAt", "update
 -- Data for Name: User; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."User" (id, "tgId", "firstName", username, "lastName", "roleId", phone, region) FROM stdin;
-1	916264231	Виталек	ciganit	\N	3	\N	\N
-2	8370051487	Максим	printbook77	Абелов	2	\N	Оренбург
+COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone, "isBlocked", "blockedAt", "blockedReason", "roleId", "createdAt", "updatedAt") FROM stdin;
+1	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	1	2025-12-18 14:36:09.718	2025-12-18 14:36:13.43
+2	8370051487	Максим	printbook77	Абелов	Оренбург	\N	f	\N	\N	4	2025-12-18 14:37:34.043	2025-12-18 14:37:37.878
 \.
 
 
@@ -573,8 +611,17 @@ COPY public."User" (id, "tgId", "firstName", username, "lastName", "roleId", pho
 -- Data for Name: UserProfile; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."UserProfile" (id, "userId", "mseDate", "firstTsrDate", "tsrMethod", "tsrTypes", "nextTsrDate", "notificationsEnabled", "createdAt", "updatedAt", "additionalData", "lastReminderSent", "reminderDaysBefore", "tsrPeriodMonths") FROM stdin;
-1	2	2020-08-17 00:00:00	\N	Сертификат	Трость	2025-12-12 00:00:00	t	2025-12-11 18:05:53.313	2025-12-11 18:05:53.313	\N	\N	21	3
+COPY public."UserProfile" (id, "userId", "mseDate", "firstTsrDate", "tsrMethod", "tsrTypes", "tsrPeriodMonths", "nextTsrDate", "reminderDaysBefore", "lastReminderSent", "notificationsEnabled", "additionalData", "createdAt", "updatedAt") FROM stdin;
+1	1	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-18 14:36:30.289	2025-12-18 14:36:30.289
+2	2	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-18 14:37:45.746	2025-12-18 14:37:45.746
+\.
+
+
+--
+-- Data for Name: _prisma_migrations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count) FROM stdin;
 \.
 
 
@@ -582,35 +629,35 @@ COPY public."UserProfile" (id, "userId", "mseDate", "firstTsrDate", "tsrMethod",
 -- Name: CartItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."CartItem_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."CartItem_id_seq"', 1, false);
 
 
 --
 -- Name: Faq_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Faq_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."Faq_id_seq"', 3, true);
 
 
 --
 -- Name: OrderItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."OrderItem_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."OrderItem_id_seq"', 1, false);
 
 
 --
 -- Name: Order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Order_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."Order_id_seq"', 1, false);
 
 
 --
 -- Name: Product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Product_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."Product_id_seq"', 1, false);
 
 
 --
@@ -624,21 +671,21 @@ SELECT pg_catalog.setval('public."Role_id_seq"', 4, true);
 -- Name: SupportMessage_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 4, true);
+SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 2, true);
 
 
 --
 -- Name: SupportTicket_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."SupportTicket_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."SupportTicket_id_seq"', 2, true);
 
 
 --
 -- Name: UserProfile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."UserProfile_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."UserProfile_id_seq"', 2, true);
 
 
 --
@@ -726,6 +773,14 @@ ALTER TABLE ONLY public."UserProfile"
 
 ALTER TABLE ONLY public."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: _prisma_migrations _prisma_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public._prisma_migrations
+    ADD CONSTRAINT _prisma_migrations_pkey PRIMARY KEY (id);
 
 
 --
@@ -841,6 +896,13 @@ ALTER TABLE ONLY public."UserProfile"
 
 ALTER TABLE ONLY public."User"
     ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES public."Role"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 
 
 --

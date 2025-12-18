@@ -86,14 +86,37 @@ export class SupportService {
     message: string,
     photos: string[] = [],
   ) {
-    return this.prisma.supportMessage.create({
-      data: {
-        ticketId,
-        userId,
-        message,
-        photos,
-      },
+    // Получаем информацию о пользователе, который отправляет сообщение
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true },
     });
+
+    const isAdmin =
+      user?.role?.name === 'admin' || user?.role?.name === 'support';
+
+    // Создаем сообщение и обновляем флаги непрочитанных
+    const [newMessage] = await this.prisma.$transaction([
+      this.prisma.supportMessage.create({
+        data: {
+          ticketId,
+          userId,
+          message,
+          photos,
+        },
+      }),
+      this.prisma.supportTicket.update({
+        where: { id: ticketId },
+        data: {
+          // Если пишет админ - помечаем как непрочитанное для пользователя
+          // Если пишет пользователь - помечаем как непрочитанное для админа
+          hasUnreadAdminMessages: isAdmin ? true : undefined,
+          hasUnreadUserMessages: !isAdmin ? true : undefined,
+        },
+      }),
+    ]);
+
+    return newMessage;
   }
 
   async updateTicketStatus(
@@ -113,6 +136,26 @@ export class SupportService {
     return this.updateTicketStatus(ticketId, 'closed');
   }
 
+  // Отметить сообщения как прочитанные для пользователя
+  async markAsReadByUser(ticketId: number) {
+    return this.prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: {
+        hasUnreadAdminMessages: false,
+      },
+    });
+  }
+
+  // Отметить сообщения как прочитанные для админа/поддержки
+  async markAsReadByAdmin(ticketId: number) {
+    return this.prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: {
+        hasUnreadUserMessages: false,
+      },
+    });
+  }
+
   formatTicketsList(tickets: any[]) {
     if (tickets.length === 0) {
       return 'Нет открытых обращений';
@@ -130,7 +173,9 @@ export class SupportService {
             : ticket.status === 'in_progress'
               ? '💬'
               : '✅';
-        return `${index + 1}. ${statusEmoji} ID: ${ticket.id}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n${lastMessage}`;
+        // Показываем индикатор непрочитанных сообщений от пользователя
+        const unreadIndicator = ticket.hasUnreadUserMessages ? '🔴 ' : '';
+        return `${index + 1}. ${unreadIndicator}${statusEmoji} ID: ${ticket.id}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n${lastMessage}`;
       })
       .join('\n\n');
   }

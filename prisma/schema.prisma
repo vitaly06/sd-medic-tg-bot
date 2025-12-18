@@ -16,6 +16,10 @@ model User{
   lastName String?
   region String?
   phone String?
+  
+  isBlocked Boolean @default(false)
+  blockedAt DateTime?
+  blockedReason String?
 
   roleId Int
   role Role @relation(fields: [roleId], references: [id])
@@ -25,6 +29,9 @@ model User{
   cartItems CartItem[]
   orders Order[]
   profile UserProfile?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Role {
@@ -62,6 +69,10 @@ model SupportTicket {
   
   status String @default("open") // open, in_progress, closed
   subject String?
+  
+  // Флаги для отслеживания непрочитанных сообщений
+  hasUnreadUserMessages Boolean @default(false)   // Есть ли непрочитанные сообщения от пользователя (для админа/поддержки)
+  hasUnreadAdminMessages Boolean @default(false)  // Есть ли непрочитанные сообщения от админа (для пользователя)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -188,9 +188,9 @@ export class AdminService {
 
     const message = this.employeeService.formatEmployeeList(employees);
     const keyboard = Markup.keyboard([
+      ['🔍 Найти пользователя', '🔗 Пригласительная ссылка'],
       ['➕ Добавить сотрудника'],
-      ['✏️ Редактировать сотрудника'],
-      ['🗑 Удалить сотрудника'],
+      ['✏️ Редактировать сотрудника', '🗑 Удалить сотрудника'],
       ['◀️ Назад'],
     ]).resize();
 
@@ -345,6 +345,159 @@ export class AdminService {
     this.stateService.deleteState(ctx.from.id);
     await ctx.reply('✅ Роль сотрудника изменена на "user"!', ADMIN_KEYBOARD);
     return true;
+  }
+
+  // === РАСШИРЕННОЕ УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ===
+
+  async searchUsers(ctx: Context) {
+    if (!ctx.from) return;
+    this.stateService.setState(ctx.from.id, {
+      action: 'search_users',
+    });
+    await ctx.reply(
+      '🔍 Поиск пользователей\n\nВведите:\n• Имя пользователя\n• @username\n• ID пользователя\n• Telegram ID\n\nИли напишите "отмена"',
+      Markup.removeKeyboard(),
+    );
+  }
+
+  async handleSearchUsers(ctx: Context, searchText: string) {
+    if (!ctx.from) return;
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: searchText, mode: 'insensitive' } },
+          { lastName: { contains: searchText, mode: 'insensitive' } },
+          {
+            username: {
+              contains: searchText.replace('@', ''),
+              mode: 'insensitive',
+            },
+          },
+          { tgId: searchText },
+          {
+            id: isNaN(parseInt(searchText)) ? undefined : parseInt(searchText),
+          },
+        ],
+      },
+      include: {
+        role: true,
+      },
+      take: 20,
+    });
+
+    if (users.length === 0) {
+      await ctx.reply('❌ Пользователи не найдены', ADMIN_KEYBOARD);
+      this.stateService.deleteState(ctx.from.id);
+      return;
+    }
+
+    let message = `🔍 Найдено пользователей: ${users.length}\n\n`;
+    users.forEach((user, index) => {
+      const blocked = user.isBlocked ? ' 🚫' : '';
+      message += `${index + 1}. ${user.firstName || ''} ${user.lastName || ''} ${user.username ? `@${user.username}` : ''}\n`;
+      message += `   ID: ${user.id} | TG: ${user.tgId}\n`;
+      message += `   Роль: ${user.role.name}${blocked}\n\n`;
+    });
+
+    message += '\nВыберите номер пользователя для действий:';
+
+    this.stateService.setState(ctx.from.id, {
+      action: 'select_user_action',
+      data: { users },
+    });
+
+    await ctx.reply(message, Markup.removeKeyboard());
+  }
+
+  async handleSelectUserAction(ctx: Context, text: string, users: any[]) {
+    if (!ctx.from) return;
+    const index = parseInt(text) - 1;
+
+    if (isNaN(index) || index < 0 || index >= users.length) {
+      await ctx.reply('❌ Неверный номер. Попробуйте снова:');
+      return false;
+    }
+
+    const user = users[index];
+    const blockedStatus = user.isBlocked ? '🚫 Заблокирован' : '✅ Активен';
+
+    this.stateService.setState(ctx.from.id, {
+      action: 'user_action_menu',
+      data: { user },
+    });
+
+    const keyboard = Markup.keyboard([
+      [user.isBlocked ? '✅ Разблокировать' : '🚫 Заблокировать'],
+      ['� Редактировать профиль'],
+      ['�👤 Изменить роль'],
+      ['🗑 Удалить пользователя'],
+      ['◀️ Назад'],
+    ]).resize();
+
+    await ctx.reply(
+      `Пользователь: ${user.firstName || ''} ${user.lastName || ''} ${user.username ? `@${user.username}` : ''}\n` +
+        `ID: ${user.id} | TG ID: ${user.tgId}\n` +
+        `Роль: ${user.role.name}\n` +
+        `Статус: ${blockedStatus}\n\n` +
+        `Выберите действие:`,
+      keyboard,
+    );
+    return true;
+  }
+
+  async blockUser(ctx: Context, userId: number, reason?: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isBlocked: true,
+        blockedAt: new Date(),
+        blockedReason: reason,
+      },
+    });
+
+    this.stateService.deleteState(ctx.from!.id);
+    await ctx.reply('🚫 Пользователь заблокирован', ADMIN_KEYBOARD);
+  }
+
+  async unblockUser(ctx: Context, userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isBlocked: false,
+        blockedAt: null,
+        blockedReason: null,
+      },
+    });
+
+    this.stateService.deleteState(ctx.from!.id);
+    await ctx.reply('✅ Пользователь разблокирован', ADMIN_KEYBOARD);
+  }
+
+  async deleteUser(ctx: Context, userId: number) {
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    this.stateService.deleteState(ctx.from!.id);
+    await ctx.reply('🗑 Пользователь удален из системы', ADMIN_KEYBOARD);
+  }
+
+  async generateInviteLink(ctx: Context) {
+    if (!ctx.from) return;
+
+    try {
+      const botInfo = await ctx.telegram.getMe();
+      const inviteLink = `https://t.me/${botInfo.username}?start=invite`;
+
+      await ctx.reply(
+        `🔗 Пригласительная ссылка:\n\n${inviteLink}\n\n` +
+          `Отправьте эту ссылку для приглашения новых пользователей.`,
+        ADMIN_KEYBOARD,
+      );
+    } catch (error) {
+      await ctx.reply('❌ Ошибка при генерации ссылки', ADMIN_KEYBOARD);
+    }
   }
 
   // === УПРАВЛЕНИЕ ТОВАРАМИ ===

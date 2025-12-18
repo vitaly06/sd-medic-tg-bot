@@ -41,6 +41,8 @@ export type SupportTicketMinAggregateOutputType = {
   userId: number | null
   status: string | null
   subject: string | null
+  hasUnreadUserMessages: boolean | null
+  hasUnreadAdminMessages: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   closedAt: Date | null
@@ -51,6 +53,8 @@ export type SupportTicketMaxAggregateOutputType = {
   userId: number | null
   status: string | null
   subject: string | null
+  hasUnreadUserMessages: boolean | null
+  hasUnreadAdminMessages: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   closedAt: Date | null
@@ -61,6 +65,8 @@ export type SupportTicketCountAggregateOutputType = {
   userId: number
   status: number
   subject: number
+  hasUnreadUserMessages: number
+  hasUnreadAdminMessages: number
   createdAt: number
   updatedAt: number
   closedAt: number
@@ -83,6 +89,8 @@ export type SupportTicketMinAggregateInputType = {
   userId?: true
   status?: true
   subject?: true
+  hasUnreadUserMessages?: true
+  hasUnreadAdminMessages?: true
   createdAt?: true
   updatedAt?: true
   closedAt?: true
@@ -93,6 +101,8 @@ export type SupportTicketMaxAggregateInputType = {
   userId?: true
   status?: true
   subject?: true
+  hasUnreadUserMessages?: true
+  hasUnreadAdminMessages?: true
   createdAt?: true
   updatedAt?: true
   closedAt?: true
@@ -103,6 +113,8 @@ export type SupportTicketCountAggregateInputType = {
   userId?: true
   status?: true
   subject?: true
+  hasUnreadUserMessages?: true
+  hasUnreadAdminMessages?: true
   createdAt?: true
   updatedAt?: true
   closedAt?: true
@@ -200,6 +212,8 @@ export type SupportTicketGroupByOutputType = {
   userId: number
   status: string
   subject: string | null
+  hasUnreadUserMessages: boolean
+  hasUnreadAdminMessages: boolean
   createdAt: Date
   updatedAt: Date
   closedAt: Date | null
@@ -233,6 +247,8 @@ export type SupportTicketWhereInput = {
   userId?: Prisma.IntFilter<"SupportTicket"> | number
   status?: Prisma.StringFilter<"SupportTicket"> | string
   subject?: Prisma.StringNullableFilter<"SupportTicket"> | string | null
+  hasUnreadUserMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"SupportTicket"> | Date | string | null
@@ -245,6 +261,8 @@ export type SupportTicketOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasUnreadUserMessages?: Prisma.SortOrder
+  hasUnreadAdminMessages?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -260,6 +278,8 @@ export type SupportTicketWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.IntFilter<"SupportTicket"> | number
   status?: Prisma.StringFilter<"SupportTicket"> | string
   subject?: Prisma.StringNullableFilter<"SupportTicket"> | string | null
+  hasUnreadUserMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"SupportTicket"> | Date | string | null
@@ -272,6 +292,8 @@ export type SupportTicketOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasUnreadUserMessages?: Prisma.SortOrder
+  hasUnreadAdminMessages?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -290,6 +312,8 @@ export type SupportTicketScalarWhereWithAggregatesInput = {
   userId?: Prisma.IntWithAggregatesFilter<"SupportTicket"> | number
   status?: Prisma.StringWithAggregatesFilter<"SupportTicket"> | string
   subject?: Prisma.StringNullableWithAggregatesFilter<"SupportTicket"> | string | null
+  hasUnreadUserMessages?: Prisma.BoolWithAggregatesFilter<"SupportTicket"> | boolean
+  hasUnreadAdminMessages?: Prisma.BoolWithAggregatesFilter<"SupportTicket"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SupportTicket"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SupportTicket"> | Date | string
   closedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SupportTicket"> | Date | string | null
@@ -298,6 +322,8 @@ export type SupportTicketScalarWhereWithAggregatesInput = {
 export type SupportTicketCreateInput = {
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -310,6 +336,8 @@ export type SupportTicketUncheckedCreateInput = {
   userId: number
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -319,6 +347,8 @@ export type SupportTicketUncheckedCreateInput = {
 export type SupportTicketUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -331,6 +361,8 @@ export type SupportTicketUncheckedUpdateInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -342,6 +374,8 @@ export type SupportTicketCreateManyInput = {
   userId: number
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -350,6 +384,8 @@ export type SupportTicketCreateManyInput = {
 export type SupportTicketUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -360,6 +396,8 @@ export type SupportTicketUncheckedUpdateManyInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -380,6 +418,8 @@ export type SupportTicketCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   subject?: Prisma.SortOrder
+  hasUnreadUserMessages?: Prisma.SortOrder
+  hasUnreadAdminMessages?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
@@ -395,6 +435,8 @@ export type SupportTicketMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   subject?: Prisma.SortOrder
+  hasUnreadUserMessages?: Prisma.SortOrder
+  hasUnreadAdminMessages?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
@@ -405,6 +447,8 @@ export type SupportTicketMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   subject?: Prisma.SortOrder
+  hasUnreadUserMessages?: Prisma.SortOrder
+  hasUnreadAdminMessages?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
@@ -462,10 +506,6 @@ export type SupportTicketUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.SupportTicketScalarWhereInput | Prisma.SupportTicketScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type SupportTicketCreateNestedOneWithoutMessagesInput = {
   create?: Prisma.XOR<Prisma.SupportTicketCreateWithoutMessagesInput, Prisma.SupportTicketUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.SupportTicketCreateOrConnectWithoutMessagesInput
@@ -483,6 +523,8 @@ export type SupportTicketUpdateOneRequiredWithoutMessagesNestedInput = {
 export type SupportTicketCreateWithoutUserInput = {
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -493,6 +535,8 @@ export type SupportTicketUncheckedCreateWithoutUserInput = {
   id?: number
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -533,6 +577,8 @@ export type SupportTicketScalarWhereInput = {
   userId?: Prisma.IntFilter<"SupportTicket"> | number
   status?: Prisma.StringFilter<"SupportTicket"> | string
   subject?: Prisma.StringNullableFilter<"SupportTicket"> | string | null
+  hasUnreadUserMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFilter<"SupportTicket"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SupportTicket"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"SupportTicket"> | Date | string | null
@@ -541,6 +587,8 @@ export type SupportTicketScalarWhereInput = {
 export type SupportTicketCreateWithoutMessagesInput = {
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -552,6 +600,8 @@ export type SupportTicketUncheckedCreateWithoutMessagesInput = {
   userId: number
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -576,6 +626,8 @@ export type SupportTicketUpdateToOneWithWhereWithoutMessagesInput = {
 export type SupportTicketUpdateWithoutMessagesInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -587,6 +639,8 @@ export type SupportTicketUncheckedUpdateWithoutMessagesInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -596,6 +650,8 @@ export type SupportTicketCreateManyUserInput = {
   id?: number
   status?: string
   subject?: string | null
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   closedAt?: Date | string | null
@@ -604,6 +660,8 @@ export type SupportTicketCreateManyUserInput = {
 export type SupportTicketUpdateWithoutUserInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -614,6 +672,8 @@ export type SupportTicketUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -624,6 +684,8 @@ export type SupportTicketUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasUnreadUserMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasUnreadAdminMessages?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -665,6 +727,8 @@ export type SupportTicketSelect<ExtArgs extends runtime.Types.Extensions.Interna
   userId?: boolean
   status?: boolean
   subject?: boolean
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   closedAt?: boolean
@@ -678,6 +742,8 @@ export type SupportTicketSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   userId?: boolean
   status?: boolean
   subject?: boolean
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   closedAt?: boolean
@@ -689,6 +755,8 @@ export type SupportTicketSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   userId?: boolean
   status?: boolean
   subject?: boolean
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   closedAt?: boolean
@@ -700,12 +768,14 @@ export type SupportTicketSelectScalar = {
   userId?: boolean
   status?: boolean
   subject?: boolean
+  hasUnreadUserMessages?: boolean
+  hasUnreadAdminMessages?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   closedAt?: boolean
 }
 
-export type SupportTicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "status" | "subject" | "createdAt" | "updatedAt" | "closedAt", ExtArgs["result"]["supportTicket"]>
+export type SupportTicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "status" | "subject" | "hasUnreadUserMessages" | "hasUnreadAdminMessages" | "createdAt" | "updatedAt" | "closedAt", ExtArgs["result"]["supportTicket"]>
 export type SupportTicketInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   messages?: boolean | Prisma.SupportTicket$messagesArgs<ExtArgs>
@@ -729,6 +799,8 @@ export type $SupportTicketPayload<ExtArgs extends runtime.Types.Extensions.Inter
     userId: number
     status: string
     subject: string | null
+    hasUnreadUserMessages: boolean
+    hasUnreadAdminMessages: boolean
     createdAt: Date
     updatedAt: Date
     closedAt: Date | null
@@ -1161,6 +1233,8 @@ export interface SupportTicketFieldRefs {
   readonly userId: Prisma.FieldRef<"SupportTicket", 'Int'>
   readonly status: Prisma.FieldRef<"SupportTicket", 'String'>
   readonly subject: Prisma.FieldRef<"SupportTicket", 'String'>
+  readonly hasUnreadUserMessages: Prisma.FieldRef<"SupportTicket", 'Boolean'>
+  readonly hasUnreadAdminMessages: Prisma.FieldRef<"SupportTicket", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"SupportTicket", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SupportTicket", 'DateTime'>
   readonly closedAt: Prisma.FieldRef<"SupportTicket", 'DateTime'>

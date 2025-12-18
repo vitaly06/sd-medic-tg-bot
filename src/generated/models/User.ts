@@ -44,7 +44,12 @@ export type UserMinAggregateOutputType = {
   lastName: string | null
   region: string | null
   phone: string | null
+  isBlocked: boolean | null
+  blockedAt: Date | null
+  blockedReason: string | null
   roleId: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -55,7 +60,12 @@ export type UserMaxAggregateOutputType = {
   lastName: string | null
   region: string | null
   phone: string | null
+  isBlocked: boolean | null
+  blockedAt: Date | null
+  blockedReason: string | null
   roleId: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -66,7 +76,12 @@ export type UserCountAggregateOutputType = {
   lastName: number
   region: number
   phone: number
+  isBlocked: number
+  blockedAt: number
+  blockedReason: number
   roleId: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -89,7 +104,12 @@ export type UserMinAggregateInputType = {
   lastName?: true
   region?: true
   phone?: true
+  isBlocked?: true
+  blockedAt?: true
+  blockedReason?: true
   roleId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -100,7 +120,12 @@ export type UserMaxAggregateInputType = {
   lastName?: true
   region?: true
   phone?: true
+  isBlocked?: true
+  blockedAt?: true
+  blockedReason?: true
   roleId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -111,7 +136,12 @@ export type UserCountAggregateInputType = {
   lastName?: true
   region?: true
   phone?: true
+  isBlocked?: true
+  blockedAt?: true
+  blockedReason?: true
   roleId?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -209,7 +239,12 @@ export type UserGroupByOutputType = {
   lastName: string | null
   region: string | null
   phone: string | null
+  isBlocked: boolean
+  blockedAt: Date | null
+  blockedReason: string | null
   roleId: number
+  createdAt: Date
+  updatedAt: Date
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -243,7 +278,12 @@ export type UserWhereInput = {
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
   region?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringNullableFilter<"User"> | string | null
+  isBlocked?: Prisma.BoolFilter<"User"> | boolean
+  blockedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  blockedReason?: Prisma.StringNullableFilter<"User"> | string | null
   roleId?: Prisma.IntFilter<"User"> | number
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   supportTickets?: Prisma.SupportTicketListRelationFilter
   supportMessages?: Prisma.SupportMessageListRelationFilter
@@ -260,7 +300,12 @@ export type UserOrderByWithRelationInput = {
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
   region?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  isBlocked?: Prisma.SortOrder
+  blockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
   supportTickets?: Prisma.SupportTicketOrderByRelationAggregateInput
   supportMessages?: Prisma.SupportMessageOrderByRelationAggregateInput
@@ -280,7 +325,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
   region?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringNullableFilter<"User"> | string | null
+  isBlocked?: Prisma.BoolFilter<"User"> | boolean
+  blockedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  blockedReason?: Prisma.StringNullableFilter<"User"> | string | null
   roleId?: Prisma.IntFilter<"User"> | number
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   supportTickets?: Prisma.SupportTicketListRelationFilter
   supportMessages?: Prisma.SupportMessageListRelationFilter
@@ -297,7 +347,12 @@ export type UserOrderByWithAggregationInput = {
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
   region?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  isBlocked?: Prisma.SortOrder
+  blockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -316,7 +371,12 @@ export type UserScalarWhereWithAggregatesInput = {
   lastName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   region?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  isBlocked?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  blockedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  blockedReason?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   roleId?: Prisma.IntWithAggregatesFilter<"User"> | number
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
 
 export type UserCreateInput = {
@@ -326,6 +386,11 @@ export type UserCreateInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
@@ -342,7 +407,12 @@ export type UserUncheckedCreateInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
@@ -357,6 +427,11 @@ export type UserUpdateInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
@@ -373,7 +448,12 @@ export type UserUncheckedUpdateInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
@@ -389,7 +469,12 @@ export type UserCreateManyInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type UserUpdateManyMutationInput = {
@@ -399,6 +484,11 @@ export type UserUpdateManyMutationInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -409,7 +499,12 @@ export type UserUncheckedUpdateManyInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -420,7 +515,12 @@ export type UserCountOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   region?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  isBlocked?: Prisma.SortOrder
+  blockedAt?: Prisma.SortOrder
+  blockedReason?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -436,7 +536,12 @@ export type UserMaxOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   region?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  isBlocked?: Prisma.SortOrder
+  blockedAt?: Prisma.SortOrder
+  blockedReason?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -447,7 +552,12 @@ export type UserMinOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   region?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  isBlocked?: Prisma.SortOrder
+  blockedAt?: Prisma.SortOrder
+  blockedReason?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -476,6 +586,18 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -605,6 +727,11 @@ export type UserCreateWithoutRoleInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
@@ -620,6 +747,11 @@ export type UserUncheckedCreateWithoutRoleInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
@@ -664,7 +796,12 @@ export type UserScalarWhereInput = {
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
   region?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringNullableFilter<"User"> | string | null
+  isBlocked?: Prisma.BoolFilter<"User"> | boolean
+  blockedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  blockedReason?: Prisma.StringNullableFilter<"User"> | string | null
   roleId?: Prisma.IntFilter<"User"> | number
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
 
 export type UserCreateWithoutSupportTicketsInput = {
@@ -674,6 +811,11 @@ export type UserCreateWithoutSupportTicketsInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
@@ -689,7 +831,12 @@ export type UserUncheckedCreateWithoutSupportTicketsInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -719,6 +866,11 @@ export type UserUpdateWithoutSupportTicketsInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
@@ -734,7 +886,12 @@ export type UserUncheckedUpdateWithoutSupportTicketsInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -748,6 +905,11 @@ export type UserCreateWithoutSupportMessagesInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
@@ -763,7 +925,12 @@ export type UserUncheckedCreateWithoutSupportMessagesInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -793,6 +960,11 @@ export type UserUpdateWithoutSupportMessagesInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
@@ -808,7 +980,12 @@ export type UserUncheckedUpdateWithoutSupportMessagesInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -822,6 +999,11 @@ export type UserCreateWithoutCartItemsInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
@@ -837,7 +1019,12 @@ export type UserUncheckedCreateWithoutCartItemsInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -867,6 +1054,11 @@ export type UserUpdateWithoutCartItemsInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
@@ -882,7 +1074,12 @@ export type UserUncheckedUpdateWithoutCartItemsInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -896,6 +1093,11 @@ export type UserCreateWithoutOrdersInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
@@ -911,7 +1113,12 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
@@ -941,6 +1148,11 @@ export type UserUpdateWithoutOrdersInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
@@ -956,7 +1168,12 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
@@ -970,6 +1187,11 @@ export type UserCreateWithoutProfileInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageCreateNestedManyWithoutUserInput
@@ -985,7 +1207,12 @@ export type UserUncheckedCreateWithoutProfileInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
   roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
   supportMessages?: Prisma.SupportMessageUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
@@ -1015,6 +1242,11 @@ export type UserUpdateWithoutProfileInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
@@ -1030,7 +1262,12 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
@@ -1045,6 +1282,11 @@ export type UserCreateManyRoleInput = {
   lastName?: string | null
   region?: string | null
   phone?: string | null
+  isBlocked?: boolean
+  blockedAt?: Date | string | null
+  blockedReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type UserUpdateWithoutRoleInput = {
@@ -1054,6 +1296,11 @@ export type UserUpdateWithoutRoleInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
@@ -1069,6 +1316,11 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
   supportMessages?: Prisma.SupportMessageUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
@@ -1084,6 +1336,11 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBlocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1152,7 +1409,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   lastName?: boolean
   region?: boolean
   phone?: boolean
+  isBlocked?: boolean
+  blockedAt?: boolean
+  blockedReason?: boolean
   roleId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   supportTickets?: boolean | Prisma.User$supportTicketsArgs<ExtArgs>
   supportMessages?: boolean | Prisma.User$supportMessagesArgs<ExtArgs>
@@ -1170,7 +1432,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastName?: boolean
   region?: boolean
   phone?: boolean
+  isBlocked?: boolean
+  blockedAt?: boolean
+  blockedReason?: boolean
   roleId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1182,7 +1449,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastName?: boolean
   region?: boolean
   phone?: boolean
+  isBlocked?: boolean
+  blockedAt?: boolean
+  blockedReason?: boolean
   roleId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1194,10 +1466,15 @@ export type UserSelectScalar = {
   lastName?: boolean
   region?: boolean
   phone?: boolean
+  isBlocked?: boolean
+  blockedAt?: boolean
+  blockedReason?: boolean
   roleId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tgId" | "firstName" | "username" | "lastName" | "region" | "phone" | "roleId", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tgId" | "firstName" | "username" | "lastName" | "region" | "phone" | "isBlocked" | "blockedAt" | "blockedReason" | "roleId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   supportTickets?: boolean | Prisma.User$supportTicketsArgs<ExtArgs>
@@ -1232,7 +1509,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     lastName: string | null
     region: string | null
     phone: string | null
+    isBlocked: boolean
+    blockedAt: Date | null
+    blockedReason: string | null
     roleId: number
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1669,7 +1951,12 @@ export interface UserFieldRefs {
   readonly lastName: Prisma.FieldRef<"User", 'String'>
   readonly region: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
+  readonly isBlocked: Prisma.FieldRef<"User", 'Boolean'>
+  readonly blockedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly blockedReason: Prisma.FieldRef<"User", 'String'>
   readonly roleId: Prisma.FieldRef<"User", 'Int'>
+  readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
 

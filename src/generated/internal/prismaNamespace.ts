@@ -1200,7 +1200,12 @@ export const UserScalarFieldEnum = {
   lastName: 'lastName',
   region: 'region',
   phone: 'phone',
-  roleId: 'roleId'
+  isBlocked: 'isBlocked',
+  blockedAt: 'blockedAt',
+  blockedReason: 'blockedReason',
+  roleId: 'roleId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1244,6 +1249,8 @@ export const SupportTicketScalarFieldEnum = {
   userId: 'userId',
   status: 'status',
   subject: 'subject',
+  hasUnreadUserMessages: 'hasUnreadUserMessages',
+  hasUnreadAdminMessages: 'hasUnreadAdminMessages',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   closedAt: 'closedAt'
@@ -1382,6 +1389,13 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1406,13 +1420,6 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 /**
