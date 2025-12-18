@@ -803,7 +803,8 @@ export class BotService {
 
       if (
         user &&
-        (user.role.name === 'admin' || user.role.name === 'support')
+        (user.role.name === 'admin' || user.role.name === 'support') &&
+        !state // Только если нет активного состояния
       ) {
         const ticketId = parseInt(ctx.message.text);
         if (!isNaN(ticketId)) {
