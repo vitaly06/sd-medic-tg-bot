@@ -528,6 +528,7 @@ ALTER TABLE ONLY public."UserProfile" ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 COPY public."CartItem" (id, "userId", "productId", quantity, "createdAt", "updatedAt") FROM stdin;
+1	3	1	5	2025-12-19 22:57:02.442	2025-12-19 22:57:09.218
 \.
 
 
@@ -562,6 +563,7 @@ COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt
 --
 
 COPY public."Product" (id, name, description, images, link, price, "createdAt", "updatedAt") FROM stdin;
+1	test	gdfsgfgdfgfd	{AgACAgIAAxkBAAIGJWlF2B4hbRoCazBPglonF1k9-_sjAAIZE2sbzasxSi9hD33OLfctAQADAgADeQADNgQ}	\N	3000	2025-12-19 22:56:41.877	2025-12-19 22:56:41.877
 \.
 
 
@@ -582,8 +584,6 @@ COPY public."Role" (id, name) FROM stdin;
 --
 
 COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "createdAt") FROM stdin;
-1	1	1	бебебебе	{}	2025-12-18 14:37:19.961
-2	1	2	и вам бебебебе	{}	2025-12-18 14:40:16.513
 \.
 
 
@@ -593,7 +593,6 @@ COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "create
 
 COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessages", "hasUnreadAdminMessages", "createdAt", "updatedAt", "closedAt") FROM stdin;
 2	2	open	\N	f	f	2025-12-18 14:38:15.081	2025-12-18 14:38:15.081	\N
-1	1	in_progress	\N	f	f	2025-12-18 14:37:13.891	2025-12-18 14:46:51.637	\N
 \.
 
 
@@ -602,8 +601,8 @@ COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessag
 --
 
 COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone, "isBlocked", "blockedAt", "blockedReason", "roleId", "createdAt", "updatedAt") FROM stdin;
-1	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	1	2025-12-18 14:36:09.718	2025-12-18 14:36:13.43
 2	8370051487	Максим	printbook77	Абелов	Оренбург	\N	f	\N	\N	4	2025-12-18 14:37:34.043	2025-12-18 14:37:37.878
+3	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	1	2025-12-19 22:55:13.184	2025-12-19 22:55:18.065
 \.
 
 
@@ -612,8 +611,8 @@ COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone
 --
 
 COPY public."UserProfile" (id, "userId", "mseDate", "firstTsrDate", "tsrMethod", "tsrTypes", "tsrPeriodMonths", "nextTsrDate", "reminderDaysBefore", "lastReminderSent", "notificationsEnabled", "additionalData", "createdAt", "updatedAt") FROM stdin;
-1	1	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-18 14:36:30.289	2025-12-18 14:36:30.289
 2	2	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-18 14:37:45.746	2025-12-18 14:37:45.746
+3	3	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-19 22:55:25.086	2025-12-19 22:55:25.086
 \.
 
 
@@ -629,7 +628,7 @@ COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs,
 -- Name: CartItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."CartItem_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."CartItem_id_seq"', 1, true);
 
 
 --
@@ -657,7 +656,7 @@ SELECT pg_catalog.setval('public."Order_id_seq"', 1, false);
 -- Name: Product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Product_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Product_id_seq"', 1, true);
 
 
 --
@@ -685,14 +684,14 @@ SELECT pg_catalog.setval('public."SupportTicket_id_seq"', 2, true);
 -- Name: UserProfile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."UserProfile_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."UserProfile_id_seq"', 3, true);
 
 
 --
 -- Name: User_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."User_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."User_id_seq"', 3, true);
 
 
 --
@@ -855,7 +854,7 @@ ALTER TABLE ONLY public."OrderItem"
 --
 
 ALTER TABLE ONLY public."Order"
-    ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -871,7 +870,7 @@ ALTER TABLE ONLY public."SupportMessage"
 --
 
 ALTER TABLE ONLY public."SupportMessage"
-    ADD CONSTRAINT "SupportMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT "SupportMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -879,7 +878,7 @@ ALTER TABLE ONLY public."SupportMessage"
 --
 
 ALTER TABLE ONLY public."SupportTicket"
-    ADD CONSTRAINT "SupportTicket_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT "SupportTicket_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

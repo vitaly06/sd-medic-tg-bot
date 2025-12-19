@@ -45,6 +45,12 @@ export class BotService {
     private readonly profileService: ProfileService,
   ) {}
 
+  // Проверка является ли сообщение командой "пропустить"
+  private isSkipCommand(text: string): boolean {
+    const lowerText = text.toLowerCase().trim();
+    return lowerText === 'пропустить' || lowerText === '⏩ пропустить';
+  }
+
   @Start()
   async onStart(@Ctx() ctx: Context) {
     const checkUser = await this.prisma.user.findUnique({
@@ -409,12 +415,31 @@ export class BotService {
     await ctx.reply('📚 Каталог товаров:', Markup.removeKeyboard());
 
     for (const product of products) {
-      const caption = `${product.name}\n\n💰 Цена: ${product.price} руб.\n\n📝 ${product.description}${product.link ? `\n\n🔗 ${product.link}` : ''}\n\nДля добавления в корзину отправьте:\n/add${product.id} количество\n\nНапример: /add${product.id} 2`;
+      const caption = `${product.name}\n\n💰 Цена: ${product.price} руб.\n\n📝 ${product.description}${product.link ? `\n\n🔗 ${product.link}` : ''}`;
+
+      // Создаем inline-кнопки для выбора количества
+      const keyboard = Markup.inlineKeyboard([
+        [
+          Markup.button.callback('1 шт', `add_${product.id}_1`),
+          Markup.button.callback('2 шт', `add_${product.id}_2`),
+          Markup.button.callback('3 шт', `add_${product.id}_3`),
+        ],
+        [
+          Markup.button.callback('5 шт', `add_${product.id}_5`),
+          Markup.button.callback('10 шт', `add_${product.id}_10`),
+        ],
+        [
+          Markup.button.callback(
+            '✏️ Указать количество',
+            `add_custom_${product.id}`,
+          ),
+        ],
+      ]);
 
       if (product.images && product.images.length > 0) {
-        await ctx.replyWithPhoto(product.images[0], { caption });
+        await ctx.replyWithPhoto(product.images[0], { caption, ...keyboard });
       } else {
-        await ctx.reply(caption);
+        await ctx.reply(caption, keyboard);
       }
     }
 
@@ -668,9 +693,25 @@ export class BotService {
     ]).resize();
 
     await ctx.reply(message, keyboard);
-    await ctx.reply(
-      'Для изменения количества используйте:\n/set ID количество\n\nДля удаления товара:\n/remove ID\n\nНапример: /set 1 3',
-    );
+
+    // Создаем inline-кнопки для управления каждым товаром
+    const inlineButtons = cartItems.map((item, index) => [
+      Markup.button.callback(
+        `${index + 1}. Изменить кол-во`,
+        `cart_change_${item.productId}`,
+      ),
+      Markup.button.callback(
+        `${index + 1}. Удалить`,
+        `cart_remove_${item.productId}`,
+      ),
+    ]);
+
+    if (inlineButtons.length > 0) {
+      await ctx.reply(
+        'Управление товарами:',
+        Markup.inlineKeyboard(inlineButtons),
+      );
+    }
   }
 
   @Hears('✅ Оформить заказ')
@@ -775,6 +816,128 @@ export class BotService {
     }
   }
 
+  @On('callback_query')
+  async onCallbackQuery(@Ctx() ctx: Context) {
+    if (!ctx.from || !ctx.callbackQuery || !('data' in ctx.callbackQuery))
+      return;
+
+    const data = ctx.callbackQuery.data;
+
+    // Обработка добавления товара в корзину с выбранным количеством
+    if (data.startsWith('add_')) {
+      const parts = data.split('_');
+
+      if (parts[1] === 'custom') {
+        // Запрос произвольного количества
+        const productId = parseInt(parts[2]);
+        this.stateService.setState(ctx.from.id, {
+          action: 'add_custom_quantity',
+          data: { productId },
+        });
+        await ctx.answerCbQuery();
+        await ctx.reply(
+          '✏️ Укажите количество товара:\n\nНапример: 15',
+          Markup.removeKeyboard(),
+        );
+        return;
+      }
+
+      const productId = parseInt(parts[1]);
+      const quantity = parseInt(parts[2]);
+
+      const product = await this.productService.getProductById(productId);
+      if (product) {
+        const user = await this.prisma.user.findUnique({
+          where: { tgId: String(ctx.from.id) },
+        });
+
+        if (user) {
+          await this.cartService.addToCart(user.id, productId, quantity);
+          await ctx.answerCbQuery(`✅ Добавлено ${quantity} шт.`);
+          await ctx.reply(
+            `✅ ${product.name} (${quantity} шт.) добавлен в корзину`,
+          );
+        }
+      }
+      return;
+    }
+
+    // Обработка изменения количества товара в корзине
+    if (data.startsWith('cart_change_')) {
+      const productId = parseInt(data.replace('cart_change_', ''));
+      this.stateService.setState(ctx.from.id, {
+        action: 'cart_change_quantity',
+        data: { productId },
+      });
+      await ctx.answerCbQuery();
+      await ctx.reply(
+        '✏️ Укажите новое количество товара:\n\nНапример: 5',
+        Markup.removeKeyboard(),
+      );
+      return;
+    }
+
+    // Обработка удаления товара из корзины
+    if (data.startsWith('cart_remove_')) {
+      const productId = parseInt(data.replace('cart_remove_', ''));
+      const user = await this.prisma.user.findUnique({
+        where: { tgId: String(ctx.from.id) },
+      });
+
+      if (user) {
+        await this.cartService.removeFromCart(user.id, productId);
+        await ctx.answerCbQuery('✅ Товар удален');
+        await ctx.reply('✅ Товар удален из корзины', MAIN_KEYBOARD);
+      }
+      return;
+    }
+
+    // Обработка ответа на обращение (для поддержки)
+    if (data.startsWith('reply_ticket_')) {
+      const ticketId = parseInt(data.replace('reply_ticket_', ''));
+      this.stateService.setState(ctx.from.id, {
+        action: 'support_reply_message',
+        data: { ticketId },
+      });
+      await ctx.answerCbQuery();
+      await ctx.reply(
+        '💬 Введите текст ответа пользователю:',
+        Markup.removeKeyboard(),
+      );
+      return;
+    }
+
+    // Обработка закрытия обращения (для поддержки)
+    if (data.startsWith('close_ticket_')) {
+      const ticketId = parseInt(data.replace('close_ticket_', ''));
+      const ticket = await this.supportService.getTicketById(ticketId);
+
+      if (ticket) {
+        await this.supportService.closeTicket(ticketId);
+
+        // Уведомляем пользователя
+        await ctx.telegram.sendMessage(
+          ticket.user.tgId,
+          `✅ Ваше обращение #${ticketId} было закрыто.\n\nЕсли у вас возникнут новые вопросы, вы можете создать новое обращение через "💬 Живой чат".`,
+        );
+
+        await ctx.answerCbQuery('✅ Обращение закрыто');
+
+        const user = await this.prisma.user.findUnique({
+          where: { tgId: String(ctx.from.id) },
+          include: { role: true },
+        });
+
+        const keyboard =
+          user?.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
+        await ctx.reply('✅ Обращение закрыто', keyboard);
+      }
+      return;
+    }
+
+    await ctx.answerCbQuery();
+  }
+
   @On('text')
   async onButtonPress(@Ctx() ctx: Context) {
     if (ctx.message && 'text' in ctx.message && ctx.from) {
@@ -816,12 +979,23 @@ export class BotService {
             const messages = this.supportService.formatMessages(
               ticket.messages,
             );
-            const keyboard =
-              user.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
 
             await ctx.reply(
-              `📋 Обращение #${ticket.id}\nСтатус: ${ticket.status}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n\n${messages}\n\nДля ответа отправьте: /reply ${ticket.id} текст ответа`,
-              keyboard,
+              `📋 Обращение #${ticket.id}\nСтатус: ${ticket.status}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n\n${messages}`,
+              Markup.inlineKeyboard([
+                [
+                  Markup.button.callback(
+                    '💬 Ответить',
+                    `reply_ticket_${ticket.id}`,
+                  ),
+                ],
+                [
+                  Markup.button.callback(
+                    '✅ Закрыть обращение',
+                    `close_ticket_${ticket.id}`,
+                  ),
+                ],
+              ]),
             );
             return;
           }
@@ -992,10 +1166,9 @@ export class BotService {
 
         if (!user) return;
 
-        const comment =
-          ctx.message.text.toLowerCase() === 'пропустить'
-            ? undefined
-            : ctx.message.text;
+        const comment = this.isSkipCommand(ctx.message.text)
+          ? undefined
+          : ctx.message.text;
 
         try {
           const order = await this.cartService.createOrder(
@@ -1030,6 +1203,110 @@ export class BotService {
         return;
       }
 
+      // === ОБРАБОТКА ДОБАВЛЕНИЯ ПРОИЗВОЛЬНОГО КОЛИЧЕСТВА ТОВАРА ===
+
+      if (state?.action === 'add_custom_quantity') {
+        const quantity = parseInt(ctx.message.text);
+
+        if (isNaN(quantity) || quantity < 1) {
+          await ctx.reply('❌ Неверное количество. Укажите число больше 0:');
+          return;
+        }
+
+        const product = await this.productService.getProductById(
+          state.data.productId,
+        );
+        if (product) {
+          const user = await this.prisma.user.findUnique({
+            where: { tgId: String(ctx.from.id) },
+          });
+
+          if (user) {
+            await this.cartService.addToCart(
+              user.id,
+              state.data.productId,
+              quantity,
+            );
+            this.stateService.deleteState(ctx.from.id);
+            await ctx.reply(
+              `✅ ${product.name} (${quantity} шт.) добавлен в корзину`,
+              MAIN_KEYBOARD,
+            );
+          }
+        }
+        return;
+      }
+
+      // === ОБРАБОТКА ИЗМЕНЕНИЯ КОЛИЧЕСТВА ТОВАРА В КОРЗИНЕ ===
+
+      if (state?.action === 'cart_change_quantity') {
+        const quantity = parseInt(ctx.message.text);
+
+        if (isNaN(quantity) || quantity < 1) {
+          await ctx.reply('❌ Неверное количество. Укажите число больше 0:');
+          return;
+        }
+
+        const user = await this.prisma.user.findUnique({
+          where: { tgId: String(ctx.from.id) },
+        });
+
+        if (user) {
+          await this.cartService.updateQuantity(
+            user.id,
+            state.data.productId,
+            quantity,
+          );
+          this.stateService.deleteState(ctx.from.id);
+          await ctx.reply('✅ Количество обновлено', MAIN_KEYBOARD);
+        }
+        return;
+      }
+
+      // === ОБРАБОТКА ОТВЕТА НА ОБРАЩЕНИЕ (ДЛЯ ПОДДЕРЖКИ) ===
+
+      if (state?.action === 'support_reply_message') {
+        const user = await this.prisma.user.findUnique({
+          where: { tgId: String(ctx.from.id) },
+          include: { role: true },
+        });
+
+        if (
+          !user ||
+          (user.role.name !== 'admin' && user.role.name !== 'support')
+        ) {
+          return;
+        }
+
+        const ticket = await this.supportService.getTicketById(
+          state.data.ticketId,
+        );
+
+        if (ticket) {
+          await this.supportService.addMessage(
+            state.data.ticketId,
+            user.id,
+            ctx.message.text,
+          );
+          await this.supportService.updateTicketStatus(
+            state.data.ticketId,
+            'in_progress',
+          );
+
+          // Уведомляем пользователя
+          await ctx.telegram.sendMessage(
+            ticket.user.tgId,
+            `💬 Ответ от службы поддержки по обращению #${state.data.ticketId}:\n\n${ctx.message.text}`,
+          );
+
+          this.stateService.deleteState(ctx.from.id);
+          const keyboard =
+            user.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
+          await ctx.reply('✅ Ответ отправлен пользователю', keyboard);
+        }
+        return;
+      }
+
       // === ОБРАБОТКА УСТАНОВКИ РЕГИОНА ===
 
       if (state?.action === 'set_region') {
@@ -1048,7 +1325,10 @@ export class BotService {
             action: 'profile_mse_date',
           });
           await ctx.reply(
-            `✅ Регион "${ctx.message.text}" сохранен!\n\n📋 Теперь давайте заполним вашу анкету для получения ТСР.\n\n1️⃣ Укажите дату заключения МСЭ по ИПРа (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nНапример: 15.01.2024\n\nИли напишите "пропустить" для заполнения позже.`,
+            `✅ Регион "${ctx.message.text}" сохранен!\n\n📋 Теперь давайте заполним вашу анкету для получения ТСР.\n\n1️⃣ Укажите дату заключения МСЭ по ИПРа (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nНапример: 15.01.2024`,
+            Markup.keyboard([['⏩ Пропустить']])
+              .oneTime()
+              .resize(),
           );
         }
         return;
@@ -1064,7 +1344,7 @@ export class BotService {
         if (!user) return;
 
         let mseDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             mseDate = new Date(
@@ -1079,14 +1359,17 @@ export class BotService {
         });
 
         await ctx.reply(
-          '2️⃣ Укажите дату первого получения ТСР (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nИли напишите "пропустить".',
+          '2️⃣ Укажите дату первого получения ТСР (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.',
+          Markup.keyboard([['⏩ Пропустить']])
+            .oneTime()
+            .resize(),
         );
         return;
       }
 
       if (state?.action === 'profile_first_tsr_date') {
         let firstTsrDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             firstTsrDate = new Date(
@@ -1102,7 +1385,7 @@ export class BotService {
 
         await ctx.reply(
           '3️⃣ Выберите способ получения ТСР:',
-          Markup.keyboard([['Выдача'], ['Сертификат'], ['Пропустить']])
+          Markup.keyboard([['Выдача'], ['Сертификат'], ['⏩ Пропустить']])
             .oneTime()
             .resize(),
         );
@@ -1110,10 +1393,9 @@ export class BotService {
       }
 
       if (state?.action === 'profile_tsr_method') {
-        const tsrMethod =
-          ctx.message.text.toLowerCase() === 'пропустить'
-            ? null
-            : ctx.message.text;
+        const tsrMethod = this.isSkipCommand(ctx.message.text)
+          ? null
+          : ctx.message.text;
 
         this.stateService.setState(ctx.from.id, {
           action: 'profile_tsr_types',
@@ -1121,17 +1403,18 @@ export class BotService {
         });
 
         await ctx.reply(
-          '4️⃣ Укажите виды назначенных ТСР (через запятую):\n\nНапример: Инвалидная коляска, Трость, Протезы\n\nИли напишите "пропустить".',
-          Markup.removeKeyboard(),
+          '4️⃣ Укажите виды назначенных ТСР (через запятую):\n\nНапример: Инвалидная коляска, Трость, Протезы',
+          Markup.keyboard([['⏩ Пропустить']])
+            .oneTime()
+            .resize(),
         );
         return;
       }
 
       if (state?.action === 'profile_tsr_types') {
-        const tsrTypes =
-          ctx.message.text.toLowerCase() === 'пропустить'
-            ? null
-            : ctx.message.text;
+        const tsrTypes = this.isSkipCommand(ctx.message.text)
+          ? null
+          : ctx.message.text;
 
         this.stateService.setState(ctx.from.id, {
           action: 'profile_next_tsr_date',
@@ -1139,7 +1422,10 @@ export class BotService {
         });
 
         await ctx.reply(
-          '5️⃣ Укажите дату следующего получения ТСР (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.\n\nИли напишите "пропустить".',
+          '5️⃣ Укажите дату следующего получения ТСР (в формате ДД.ММ.ГГГГ):\n\nЭто нужно для напоминаний о своевременном получении ТСР.',
+          Markup.keyboard([['⏩ Пропустить']])
+            .oneTime()
+            .resize(),
         );
         return;
       }
@@ -1152,7 +1438,7 @@ export class BotService {
         if (!user) return;
 
         let nextTsrDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             nextTsrDate = new Date(
@@ -1193,7 +1479,7 @@ export class BotService {
         if (!user) return;
 
         let mseDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             mseDate = new Date(
@@ -1231,7 +1517,7 @@ export class BotService {
         if (!user) return;
 
         let firstTsrDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             firstTsrDate = new Date(
@@ -1271,7 +1557,7 @@ export class BotService {
         if (!user) return;
 
         let nextTsrDate: Date | undefined = undefined;
-        if (ctx.message.text.toLowerCase() !== 'пропустить') {
+        if (!this.isSkipCommand(ctx.message.text)) {
           const dateParts = ctx.message.text.split('.');
           if (dateParts.length === 3) {
             nextTsrDate = new Date(
@@ -1310,10 +1596,9 @@ export class BotService {
 
         if (!user) return;
 
-        const tsrMethod =
-          ctx.message.text.toLowerCase() === 'пропустить'
-            ? undefined
-            : ctx.message.text;
+        const tsrMethod = this.isSkipCommand(ctx.message.text)
+          ? undefined
+          : ctx.message.text;
 
         await this.profileService.createOrUpdateProfile(user.id, { tsrMethod });
 
@@ -1343,10 +1628,9 @@ export class BotService {
 
         if (!user) return;
 
-        const tsrTypes =
-          ctx.message.text.toLowerCase() === 'пропустить'
-            ? undefined
-            : ctx.message.text;
+        const tsrTypes = this.isSkipCommand(ctx.message.text)
+          ? undefined
+          : ctx.message.text;
 
         await this.profileService.createOrUpdateProfile(user.id, { tsrTypes });
 
@@ -1376,7 +1660,7 @@ export class BotService {
 
         if (!user) return;
 
-        if (ctx.message.text.toLowerCase() === 'пропустить') {
+        if (this.isSkipCommand(ctx.message.text)) {
           this.stateService.deleteState(ctx.from.id);
           await ctx.reply(
             '❌ Изменение отменено',
@@ -1432,7 +1716,7 @@ export class BotService {
 
         if (!user) return;
 
-        if (ctx.message.text.toLowerCase() === 'пропустить') {
+        if (this.isSkipCommand(ctx.message.text)) {
           this.stateService.deleteState(ctx.from.id);
           await ctx.reply(
             '❌ Изменение отменено',

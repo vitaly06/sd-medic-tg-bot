@@ -65,7 +65,7 @@ model Product {
 model SupportTicket {
   id Int @id @default(autoincrement())
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   status String @default("open") // open, in_progress, closed
   subject String?
@@ -87,7 +87,7 @@ model SupportMessage {
   ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   message String
   photos String[]
@@ -114,7 +114,7 @@ model CartItem {
 model Order {
   id Int @id @default(autoincrement())
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   status String @default("pending") // pending, confirmed, processing, completed, cancelled
   totalPrice Float
