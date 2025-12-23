@@ -623,12 +623,31 @@ export class AdminService {
       return;
     }
 
+    this.stateService.setState(ctx.from.id, {
+      action: 'add_product_category',
+      data: { ...data, price },
+    });
+    await ctx.reply(
+      'Введите категорию товара (например: пеленки, подгузники, калоприемники, коляски и т.д.)\nИли напишите "пропустить" чтобы оставить без категории:',
+    );
+  }
+
+  async handleAddProductCategory(
+    ctx: Context,
+    categoryText: string,
+    data: any,
+  ) {
+    if (!ctx.from) return;
+    const category =
+      categoryText.toLowerCase() === 'пропустить' ? undefined : categoryText;
+
     await this.productService.createProduct({
       name: data.name,
       description: data.description,
       images: data.images,
       link: data.link,
-      price,
+      price: data.price,
+      category,
     });
 
     this.stateService.deleteState(ctx.from.id);
@@ -670,7 +689,7 @@ export class AdminService {
       data: { product },
     });
     await ctx.reply(
-      `Редактирование товара: ${product.name}\n\nЧто изменить? Введите:\n"название", "описание", "картинки", "ссылка" или "цена":`,
+      `Редактирование товара: ${product.name}\n\nЧто изменить? Введите:\n"название", "описание", "картинки", "ссылка", "цена" или "категория":`,
     );
     return true;
   }
@@ -684,10 +703,11 @@ export class AdminService {
       field !== 'описание' &&
       field !== 'картинки' &&
       field !== 'ссылка' &&
-      field !== 'цена'
+      field !== 'цена' &&
+      field !== 'категория'
     ) {
       await ctx.reply(
-        '❌ Введите "название", "описание", "картинки", "ссылка" или "цена":',
+        '❌ Введите "название", "описание", "картинки", "ссылка", "цена" или "категория":',
       );
       return false;
     }
@@ -698,14 +718,31 @@ export class AdminService {
         data: { product, images: [] },
       });
       await ctx.reply(
-        'Отправьте новые картинки. После отправки всех картинок напишите "готово":',
+        `Текущие картинки товара: ${product.images?.length || 0} шт.\n\nОтправьте новые картинки. После отправки всех картинок напишите "готово":`,
       );
     } else {
       this.stateService.setState(ctx.from.id, {
         action: 'edit_product_enter_value',
         data: { product, field },
       });
-      await ctx.reply(`Введите новое значение для "${field}":`);
+
+      // Показываем текущее значение для редактирования
+      let currentValue = '';
+      if (field === 'название') {
+        currentValue = product.name;
+      } else if (field === 'описание') {
+        currentValue = product.description;
+      } else if (field === 'ссылка') {
+        currentValue = product.link || 'не указана';
+      } else if (field === 'цена') {
+        currentValue = String(product.price);
+      } else if (field === 'категория') {
+        currentValue = product.category || 'не указана';
+      }
+
+      await ctx.reply(
+        `Текущее значение "${field}":\n${currentValue}\n\nВведите новое значение${field === 'ссылка' || field === 'категория' ? ' (или "пропустить" чтобы убрать)' : ''}:`,
+      );
     }
     return true;
   }
@@ -765,6 +802,9 @@ export class AdminService {
         return false;
       }
       updateData.price = price;
+    } else if (field === 'категория') {
+      updateData.category =
+        text.toLowerCase() === 'пропустить' ? undefined : text;
     }
 
     await this.productService.updateProduct(product.id, updateData);

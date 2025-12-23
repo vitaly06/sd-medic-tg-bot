@@ -110,6 +110,7 @@ export class CartService {
         },
       },
       include: {
+        user: true,
         items: {
           include: {
             product: true,

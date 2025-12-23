@@ -20,7 +20,8 @@ const MAIN_KEYBOARD = Markup.keyboard([
 const ADMIN_KEYBOARD = Markup.keyboard([
   ['Настройка поддержки', 'Управление пользователями'],
   ['Товары', 'Рассылка'],
-  ['💬 Обращения', '📄 Экспорт базы'],
+  ['💬 Обращения', '� Заказы'],
+  ['�📄 Экспорт базы'],
 ]).resize();
 const SUPPORT_KEYBOARD = Markup.keyboard([
   'Настройка поддержки',
@@ -401,52 +402,121 @@ export class BotService {
     );
   }
 
+  @Hears('� Заказы')
+  async onOrders(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+
+    const user = await this.prisma.user.findUnique({
+      where: { tgId: String(ctx.from.id) },
+      include: { role: true },
+    });
+
+    if (!user || user.role.name !== 'admin') {
+      return;
+    }
+
+    const orders = await this.prisma.order.findMany({
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    });
+
+    if (orders.length === 0) {
+      await ctx.reply('📦 Заказов пока нет', ADMIN_KEYBOARD);
+      return;
+    }
+
+    let message = '📦 Последние заказы:\n\n';
+    orders.forEach((order) => {
+      const statusEmoji =
+        {
+          pending: '🕐',
+          confirmed: '✅',
+          processing: '📦',
+          completed: '✔️',
+          cancelled: '❌',
+        }[order.status] || '📋';
+
+      const itemsCount = order.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      const date = new Date(order.createdAt).toLocaleDateString('ru-RU');
+
+      message += `${statusEmoji} Заказ #${order.id} - ${date}\n`;
+      message += `   Пользователь: @${order.user.username || order.user.firstName}\n`;
+      message += `   Товаров: ${itemsCount} шт. | Сумма: ${order.totalPrice} ₽\n`;
+      message += `   Статус: ${order.status}\n\n`;
+    });
+
+    message += '\nДля просмотра деталей отправьте: /order ID';
+
+    await ctx.reply(message, ADMIN_KEYBOARD);
+  }
+
   @Hears('📚 Каталог')
   async onCatalog(@Ctx() ctx: Context) {
     if (!ctx.from) return;
 
-    const products = await this.productService.getAllProducts();
+    // Получаем уникальные категории
+    const categories = await this.prisma.product.findMany({
+      where: {
+        category: {
+          not: null,
+        },
+      },
+      select: {
+        category: true,
+      },
+      distinct: ['category'],
+    });
 
-    if (products.length === 0) {
+    // Также проверяем товары без категории
+    const uncategorizedCount = await this.prisma.product.count({
+      where: {
+        category: null,
+      },
+    });
+
+    if (categories.length === 0 && uncategorizedCount === 0) {
       await ctx.reply('Каталог пока пуст', MAIN_KEYBOARD);
       return;
     }
 
-    await ctx.reply('📚 Каталог товаров:', Markup.removeKeyboard());
+    // Создаем клавиатуру с категориями
+    const keyboard: string[][] = [];
 
-    for (const product of products) {
-      const caption = `${product.name}\n\n💰 Цена: ${product.price} руб.\n\n📝 ${product.description}${product.link ? `\n\n🔗 ${product.link}` : ''}`;
-
-      // Создаем inline-кнопки для выбора количества
-      const keyboard = Markup.inlineKeyboard([
-        [
-          Markup.button.callback('1 шт', `add_${product.id}_1`),
-          Markup.button.callback('2 шт', `add_${product.id}_2`),
-          Markup.button.callback('3 шт', `add_${product.id}_3`),
-        ],
-        [
-          Markup.button.callback('5 шт', `add_${product.id}_5`),
-          Markup.button.callback('10 шт', `add_${product.id}_10`),
-        ],
-        [
-          Markup.button.callback(
-            '✏️ Указать количество',
-            `add_custom_${product.id}`,
-          ),
-        ],
-      ]);
-
-      if (product.images && product.images.length > 0) {
-        await ctx.replyWithPhoto(product.images[0], { caption, ...keyboard });
-      } else {
-        await ctx.reply(caption, keyboard);
+    categories.forEach((item) => {
+      if (item.category) {
+        keyboard.push([item.category]);
       }
+    });
+
+    // Если есть товары без категории, добавляем кнопку "Другое"
+    if (uncategorizedCount > 0) {
+      keyboard.push(['Другое']);
     }
 
+    keyboard.push(['◀️ Назад']);
+
     await ctx.reply(
-      'Для просмотра корзины нажмите кнопку "🛒 Корзина"',
-      MAIN_KEYBOARD,
+      '📚 Выберите категорию товаров:',
+      Markup.keyboard(keyboard).resize(),
     );
+  }
+
+  @Hears('◀️ Назад в категории')
+  async onBackToCategories(@Ctx() ctx: Context) {
+    return this.onCatalog(ctx);
   }
 
   @Hears('/profile')
@@ -736,7 +806,7 @@ export class BotService {
     });
 
     await ctx.reply(
-      'Оформление заказа\n\nШаг 1/3: Укажите ваш контактный телефон или email:',
+      'Оформление заказа\n\nШаг 1/3: Укажите ваш контактный телефон:',
       Markup.removeKeyboard(),
     );
   }
@@ -942,6 +1012,7 @@ export class BotService {
   async onButtonPress(@Ctx() ctx: Context) {
     if (ctx.message && 'text' in ctx.message && ctx.from) {
       const state = this.stateService.getState(ctx.from.id);
+      console.log('Text received:', ctx.message.text, 'State:', state?.action);
 
       // === ГЛОБАЛЬНАЯ ПРОВЕРКА БЛОКИРОВКИ ===
 
@@ -957,6 +1028,78 @@ export class BotService {
         await ctx.reply(
           `🚫 Ваш аккуратный заблокирован.${reason}\n\nДля разблокировки обратитесь в службу поддержки.`,
         );
+        return;
+      }
+
+      // === ПРИОРИТЕТНАЯ ОБРАБОТКА ОФОРМЛЕНИЯ ЗАКАЗА ===
+
+      if (state?.action === 'checkout_contact') {
+        console.log('Processing checkout_contact, text:', ctx.message.text);
+        this.stateService.setState(ctx.from.id, {
+          action: 'checkout_address',
+          data: { contactInfo: ctx.message.text },
+        });
+        await ctx.reply('Шаг 2/3: Укажите адрес доставки:');
+        return;
+      }
+
+      if (state?.action === 'checkout_address') {
+        console.log('Processing checkout_address, text:', ctx.message.text);
+        this.stateService.setState(ctx.from.id, {
+          action: 'checkout_comment',
+          data: {
+            ...state.data,
+            deliveryAddress: ctx.message.text,
+          },
+        });
+        await ctx.reply(
+          'Шаг 3/3: Добавьте комментарий к заказу или напишите "пропустить":',
+        );
+        return;
+      }
+
+      if (state?.action === 'checkout_comment') {
+        console.log('Processing checkout_comment, text:', ctx.message.text);
+        const user = await this.prisma.user.findUnique({
+          where: { tgId: String(ctx.from.id) },
+        });
+
+        if (!user) return;
+
+        const comment = this.isSkipCommand(ctx.message.text)
+          ? undefined
+          : ctx.message.text;
+
+        try {
+          const order = await this.cartService.createOrder(
+            user.id,
+            state.data.contactInfo,
+            state.data.deliveryAddress,
+            comment,
+          );
+
+          this.stateService.deleteState(ctx.from.id);
+
+          const orderMessage = this.cartService.formatOrder(order);
+          await ctx.reply(
+            `✅ Заказ успешно оформлен!\n\n${orderMessage}\n\nМенеджер свяжется с вами в ближайшее время для подтверждения заказа.`,
+            MAIN_KEYBOARD,
+          );
+
+          // Уведомляем менеджеров о новом заказе (ошибки не критичны)
+          try {
+            await this.notifyManagersNewOrder(ctx, order);
+          } catch (notifyError) {
+            console.error('Failed to notify managers:', notifyError);
+          }
+        } catch (error) {
+          console.error('Error creating order:', error);
+          await ctx.reply(
+            '❌ Ошибка при оформлении заказа. Попробуйте снова.',
+            MAIN_KEYBOARD,
+          );
+          this.stateService.deleteState(ctx.from.id);
+        }
         return;
       }
 
@@ -1059,6 +1202,36 @@ export class BotService {
             }
           }
         }
+
+        // Обработка команды просмотра заказа
+        if (ctx.message.text.startsWith('/order ')) {
+          const orderIdStr = ctx.message.text.split(' ')[1];
+          if (orderIdStr) {
+            const orderId = parseInt(orderIdStr);
+            const order = await this.prisma.order.findUnique({
+              where: { id: orderId },
+              include: {
+                user: true,
+                items: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+            });
+
+            if (order) {
+              const orderMessage = this.cartService.formatOrder(order);
+              const keyboard = ADMIN_KEYBOARD;
+
+              await ctx.reply(
+                `📦 Заказ #${order.id}\n\n${orderMessage}\n\nДля изменения статуса используйте:\n/status ${order.id} <pending|confirmed|processing|completed|cancelled>`,
+                keyboard,
+              );
+              return;
+            }
+          }
+        }
       }
 
       // === ОБРАБОТКА КОМАНД КОРЗИНЫ ===
@@ -1132,75 +1305,6 @@ export class BotService {
             return;
           }
         }
-      }
-
-      // === ОБРАБОТКА ОФОРМЛЕНИЯ ЗАКАЗА ===
-
-      if (state?.action === 'checkout_contact') {
-        this.stateService.setState(ctx.from.id, {
-          action: 'checkout_address',
-          data: { contactInfo: ctx.message.text },
-        });
-        await ctx.reply('Шаг 2/3: Укажите адрес доставки:');
-        return;
-      }
-
-      if (state?.action === 'checkout_address') {
-        this.stateService.setState(ctx.from.id, {
-          action: 'checkout_comment',
-          data: {
-            ...state.data,
-            deliveryAddress: ctx.message.text,
-          },
-        });
-        await ctx.reply(
-          'Шаг 3/3: Добавьте комментарий к заказу или напишите "пропустить":',
-        );
-        return;
-      }
-
-      if (state?.action === 'checkout_comment') {
-        const user = await this.prisma.user.findUnique({
-          where: { tgId: String(ctx.from.id) },
-        });
-
-        if (!user) return;
-
-        const comment = this.isSkipCommand(ctx.message.text)
-          ? undefined
-          : ctx.message.text;
-
-        try {
-          const order = await this.cartService.createOrder(
-            user.id,
-            state.data.contactInfo,
-            state.data.deliveryAddress,
-            comment,
-          );
-
-          this.stateService.deleteState(ctx.from.id);
-
-          const orderMessage = this.cartService.formatOrder(order);
-          await ctx.reply(
-            `✅ Заказ успешно оформлен!\n\n${orderMessage}\n\nМенеджер свяжется с вами в ближайшее время для подтверждения заказа.`,
-            MAIN_KEYBOARD,
-          );
-
-          // Уведомляем менеджеров о новом заказе (ошибки не критичны)
-          try {
-            await this.notifyManagersNewOrder(ctx, order);
-          } catch (notifyError) {
-            console.error('Failed to notify managers:', notifyError);
-          }
-        } catch (error) {
-          console.error('Error creating order:', error);
-          await ctx.reply(
-            '❌ Ошибка при оформлении заказа. Попробуйте снова.',
-            MAIN_KEYBOARD,
-          );
-          this.stateService.deleteState(ctx.from.id);
-        }
-        return;
       }
 
       // === ОБРАБОТКА ДОБАВЛЕНИЯ ПРОИЗВОЛЬНОГО КОЛИЧЕСТВА ТОВАРА ===
@@ -1944,6 +2048,15 @@ export class BotService {
         return;
       }
 
+      if (state?.action === 'add_product_category') {
+        await this.adminService.handleAddProductCategory(
+          ctx,
+          ctx.message.text,
+          state.data,
+        );
+        return;
+      }
+
       if (state?.action === 'edit_product_select') {
         await this.adminService.handleEditProductSelect(
           ctx,
@@ -2038,6 +2151,78 @@ export class BotService {
       if (ctx.message.text == this.agree) {
         await this.handleUserAgreement(ctx);
       } else {
+        // Проверяем выбор товара (формат: "название - цена руб.")
+        if (
+          ctx.message.text.includes(' - ') &&
+          ctx.message.text.includes('руб')
+        ) {
+          const productName = ctx.message.text.split(' - ')[0].trim();
+          const product = await this.prisma.product.findFirst({
+            where: { name: productName },
+          });
+
+          if (product) {
+            const caption = `${product.name}\n\n💰 Цена: ${product.price} руб.\n\n📝 ${product.description}${product.link ? `\n\n🔗 ${product.link}` : ''}`;
+
+            const keyboard = Markup.inlineKeyboard([
+              [
+                Markup.button.callback('1 шт', `add_${product.id}_1`),
+                Markup.button.callback('2 шт', `add_${product.id}_2`),
+                Markup.button.callback('3 шт', `add_${product.id}_3`),
+              ],
+              [
+                Markup.button.callback('5 шт', `add_${product.id}_5`),
+                Markup.button.callback('10 шт', `add_${product.id}_10`),
+              ],
+              [
+                Markup.button.callback(
+                  '✏️ Указать количество',
+                  `add_custom_${product.id}`,
+                ),
+              ],
+            ]);
+
+            if (product.images && product.images.length > 0) {
+              await ctx.replyWithPhoto(product.images[0], {
+                caption,
+                ...keyboard,
+              });
+            } else {
+              await ctx.reply(caption, keyboard);
+            }
+            return;
+          }
+        }
+
+        // Проверяем выбор категории
+        const categoryExists = await this.prisma.product.findFirst({
+          where: {
+            category: ctx.message.text === 'Другое' ? null : ctx.message.text,
+          },
+        });
+
+        if (categoryExists) {
+          const products = await this.prisma.product.findMany({
+            where: {
+              category: ctx.message.text === 'Другое' ? null : ctx.message.text,
+            },
+          });
+
+          if (products.length > 0) {
+            const keyboard: string[][] = [];
+            products.forEach((product) => {
+              keyboard.push([`${product.name} - ${product.price} руб.`]);
+            });
+            keyboard.push(['◀️ Назад в категории']);
+
+            await ctx.reply(
+              `📚 ${ctx.message.text}\n\nВыберите товар:`,
+              Markup.keyboard(keyboard).resize(),
+            );
+            return;
+          }
+        }
+
         // Сначала проверяем FAQ (приоритет выше чем чат поддержки)
         const faq = await this.faqService.getFaqByQuestion(ctx.message.text);
         if (faq) {
@@ -2172,15 +2357,28 @@ export class BotService {
       },
     });
 
+    console.log(
+      `Found ${managers.length} managers to notify about order #${order.id}`,
+    );
+
+    if (managers.length === 0) {
+      console.warn('No managers found to notify about new order!');
+      return;
+    }
+
     const orderMessage = this.cartService.formatOrder(order);
     const userInfo = `Пользователь: @${order.user.username || order.user.firstName} (ID: ${order.user.id})`;
 
     for (const manager of managers) {
       try {
+        console.log(
+          `Sending notification to manager: ${manager.username || manager.firstName} (TG ID: ${manager.tgId})`,
+        );
         await ctx.telegram.sendMessage(
           manager.tgId,
-          `🆕 Новый заказ #${order.id}!\n\n${userInfo}\n\n${orderMessage}\n\nДля ответа клиенту используйте команду:\n/reply_order ${order.id} текст сообщения`,
+          `🆕 Новый заказ #${order.id}!\n\n${userInfo}\n\n${orderMessage}\n\nДля управления заказами используйте команду:\n/orders`,
         );
+        console.log(`Successfully notified manager ${manager.tgId}`);
       } catch (error) {
         console.error(`Failed to notify manager ${manager.tgId}:`, error);
       }

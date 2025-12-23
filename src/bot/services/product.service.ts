@@ -23,6 +23,7 @@ export class ProductService {
     images: string[];
     link?: string;
     price: number;
+    category?: string;
   }) {
     return this.prisma.product.create({
       data,
@@ -37,6 +38,7 @@ export class ProductService {
       images?: string[];
       link?: string;
       price?: number;
+      category?: string;
     },
   ) {
     return this.prisma.product.update({

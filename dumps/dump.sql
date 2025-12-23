@@ -203,7 +203,8 @@ CREATE TABLE public."Product" (
     link text,
     price double precision NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "updatedAt" timestamp(3) without time zone NOT NULL
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    category text
 );
 
 
@@ -547,6 +548,7 @@ COPY public."Faq" (id, question, answer, "createdAt", "updatedAt") FROM stdin;
 --
 
 COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliveryAddress", comment, "createdAt", "updatedAt") FROM stdin;
+1	2	pending	3000	+79510341677	Оренбург, самолётная 89	звонить заранее	2025-12-23 21:04:18.229	2025-12-23 21:04:18.229
 \.
 
 
@@ -555,6 +557,7 @@ COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliver
 --
 
 COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt") FROM stdin;
+1	1	1	1	3000	2025-12-23 21:04:18.229
 \.
 
 
@@ -562,8 +565,8 @@ COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt
 -- Data for Name: Product; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."Product" (id, name, description, images, link, price, "createdAt", "updatedAt") FROM stdin;
-1	test	gdfsgfgdfgfd	{AgACAgIAAxkBAAIGJWlF2B4hbRoCazBPglonF1k9-_sjAAIZE2sbzasxSi9hD33OLfctAQADAgADeQADNgQ}	\N	3000	2025-12-19 22:56:41.877	2025-12-19 22:56:41.877
+COPY public."Product" (id, name, description, images, link, price, "createdAt", "updatedAt", category) FROM stdin;
+1	test	gdfsgfgdfgfd	{AgACAgIAAxkBAAIGJWlF2B4hbRoCazBPglonF1k9-_sjAAIZE2sbzasxSi9hD33OLfctAQADAgADeQADNgQ}	\N	3000	2025-12-19 22:56:41.877	2025-12-19 22:56:41.877	\N
 \.
 
 
@@ -584,6 +587,7 @@ COPY public."Role" (id, name) FROM stdin;
 --
 
 COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "createdAt") FROM stdin;
+3	2	2	+79510341677	{}	2025-12-23 21:02:00.928
 \.
 
 
@@ -592,7 +596,7 @@ COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "create
 --
 
 COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessages", "hasUnreadAdminMessages", "createdAt", "updatedAt", "closedAt") FROM stdin;
-2	2	open	\N	f	f	2025-12-18 14:38:15.081	2025-12-18 14:38:15.081	\N
+2	2	open	\N	t	f	2025-12-18 14:38:15.081	2025-12-23 21:02:00.937	\N
 \.
 
 
@@ -601,8 +605,8 @@ COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessag
 --
 
 COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone, "isBlocked", "blockedAt", "blockedReason", "roleId", "createdAt", "updatedAt") FROM stdin;
-2	8370051487	Максим	printbook77	Абелов	Оренбург	\N	f	\N	\N	4	2025-12-18 14:37:34.043	2025-12-18 14:37:37.878
-3	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	1	2025-12-19 22:55:13.184	2025-12-19 22:55:18.065
+2	8370051487	Максим	printbook77	Абелов	Оренбург	\N	f	\N	\N	1	2025-12-18 14:37:34.043	2025-12-18 14:37:37.878
+3	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	3	2025-12-19 22:55:13.184	2025-12-19 22:55:18.065
 \.
 
 
@@ -628,7 +632,7 @@ COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs,
 -- Name: CartItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."CartItem_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."CartItem_id_seq"', 2, true);
 
 
 --
@@ -642,14 +646,14 @@ SELECT pg_catalog.setval('public."Faq_id_seq"', 3, true);
 -- Name: OrderItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."OrderItem_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."OrderItem_id_seq"', 1, true);
 
 
 --
 -- Name: Order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Order_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Order_id_seq"', 1, true);
 
 
 --
@@ -670,7 +674,7 @@ SELECT pg_catalog.setval('public."Role_id_seq"', 4, true);
 -- Name: SupportMessage_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 3, true);
 
 
 --
