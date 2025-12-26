@@ -54,7 +54,7 @@ model Product {
   description String
   images String[]
   link String?
-  price Float
+  price String // Цена товара (может быть строкой, например "от 1000 руб" или "1500")
   category String? // Категория товара (пеленки, подгузники, калоприемники, коляски и т.д.)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,7 +118,7 @@ model Order {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   status String @default("pending") // pending, confirmed, processing, completed, cancelled
-  totalPrice Float
+  totalPrice String // Общая сумма заказа (может быть строкой)
   
   contactInfo String?
   deliveryAddress String?
@@ -139,7 +139,7 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
   
   quantity Int
-  price Float
+  price String // Цена товара на момент заказа (может быть строкой)
   
   createdAt DateTime @default(now())
 }

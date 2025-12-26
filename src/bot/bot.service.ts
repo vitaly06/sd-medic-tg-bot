@@ -15,17 +15,17 @@ import { ProfileService } from './services/profile.service';
 const MAIN_KEYBOARD = Markup.keyboard([
   ['📚 Каталог', '🛒 Корзина'],
   ['Поддержка', '💬 Живой чат'],
-  ['👤 Профиль'],
+  ['👤 Профиль', '🏠 Главное меню'],
 ]).resize();
 const ADMIN_KEYBOARD = Markup.keyboard([
   ['Настройка поддержки', 'Управление пользователями'],
   ['Товары', 'Рассылка'],
-  ['💬 Обращения', '� Заказы'],
-  ['�📄 Экспорт базы'],
+  ['💬 Обращения', '📦 Заказы'],
+  ['📄 Экспорт базы', '🏠 Главное меню'],
 ]).resize();
 const SUPPORT_KEYBOARD = Markup.keyboard([
-  'Настройка поддержки',
-  '💬 Обращения',
+  ['Настройка поддержки', '💬 Обращения'],
+  ['🏠 Главное меню'],
 ]).resize();
 
 @Update()
@@ -142,6 +142,26 @@ export class BotService {
       await ctx.reply('Главное меню', MAIN_KEYBOARD);
     }
   }
+
+  @Hears('🏠 Главное меню')
+  async mainMenuButton(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+    this.stateService.deleteState(ctx.from.id);
+
+    const user = await this.prisma.user.findUnique({
+      where: { tgId: String(ctx.from.id) },
+      include: { role: true },
+    });
+
+    if (user?.role.name === 'admin') {
+      await ctx.reply('🏠 Главное меню', ADMIN_KEYBOARD);
+    } else if (user?.role.name === 'support') {
+      await ctx.reply('🏠 Главное меню', SUPPORT_KEYBOARD);
+    } else {
+      await ctx.reply('🏠 Главное меню', MAIN_KEYBOARD);
+    }
+  }
+
   // Пользователи
   @Hears('Управление пользователями')
   async manageUsers(@Ctx() ctx: Context) {
@@ -301,6 +321,11 @@ export class BotService {
     await this.adminService.startDeleteProduct(ctx);
   }
 
+  @Hears('📋 Просмотр всех товаров')
+  async viewAllProducts(@Ctx() ctx: Context) {
+    await this.adminService.viewAllProducts(ctx);
+  }
+
   // Рассылка
   @Hears('Рассылка')
   async broadcastStart(@Ctx() ctx: Context) {
@@ -398,6 +423,77 @@ export class BotService {
 
     await ctx.reply(
       `📋 Открытые обращения:\n\n${message}\n\nДля просмотра обращения отправьте ID обращения.`,
+      keyboard,
+    );
+  }
+
+  @Hears('✅ Закрыть обращение')
+  async onCloseTicketFromDialog(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+
+    const state = await this.stateService.getState(ctx.from.id);
+    if (state?.action !== 'in_ticket') return;
+
+    const ticketId = state.data?.ticketId;
+    if (!ticketId) {
+      await this.stateService.deleteState(ctx.from.id);
+      await ctx.reply('❌ Ошибка: обращение не найдено');
+      return;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { tgId: String(ctx.from.id) },
+      include: { role: true },
+    });
+
+    if (!user || (user.role.name !== 'admin' && user.role.name !== 'support')) {
+      return;
+    }
+
+    await this.supportService.closeTicket(ticketId);
+    await this.stateService.deleteState(ctx.from.id);
+
+    const ticket = await this.prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+      include: { user: true },
+    });
+
+    if (ticket) {
+      await ctx.telegram.sendMessage(
+        parseInt(ticket.user.tgId),
+        '✅ Ваше обращение закрыто. Если у вас есть дополнительные вопросы, создайте новое обращение.',
+      );
+    }
+
+    const keyboard =
+      user.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
+
+    await ctx.reply('✅ Обращение закрыто', keyboard);
+  }
+
+  @Hears('❌ Закрыть диалог')
+  async onExitTicketDialog(@Ctx() ctx: Context) {
+    if (!ctx.from) return;
+
+    const state = await this.stateService.getState(ctx.from.id);
+    if (state?.action !== 'in_ticket') return;
+
+    await this.stateService.deleteState(ctx.from.id);
+
+    const user = await this.prisma.user.findUnique({
+      where: { tgId: String(ctx.from.id) },
+      include: { role: true },
+    });
+
+    if (!user || (user.role.name !== 'admin' && user.role.name !== 'support')) {
+      return;
+    }
+
+    const keyboard =
+      user.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
+
+    await ctx.reply(
+      '✅ Диалог завершен. Обращение остается открытым.',
       keyboard,
     );
   }
@@ -776,6 +872,11 @@ export class BotService {
       ),
     ]);
 
+    // Добавляем кнопку "Оформить заказ" в конец
+    inlineButtons.push([
+      Markup.button.callback('✅ Оформить заказ', 'checkout_order'),
+    ]);
+
     if (inlineButtons.length > 0) {
       await ctx.reply(
         'Управление товарами:',
@@ -962,17 +1063,51 @@ export class BotService {
       return;
     }
 
+    // Обработка оформления заказа из inline-кнопки
+    if (data === 'checkout_order') {
+      const user = await this.prisma.user.findUnique({
+        where: { tgId: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        await ctx.answerCbQuery('❌ Ошибка');
+        return;
+      }
+
+      const cartItems = await this.cartService.getCart(user.id);
+
+      if (cartItems.length === 0) {
+        await ctx.answerCbQuery('Корзина пуста');
+        await ctx.reply('Ваша корзина пуста', MAIN_KEYBOARD);
+        return;
+      }
+
+      this.stateService.setState(ctx.from.id, {
+        action: 'checkout_contact',
+        data: {},
+      });
+
+      await ctx.answerCbQuery();
+      await ctx.reply(
+        '📞 Шаг 1/3: Укажите ваш контактный телефон:\n\nНапример: +79123456789',
+        Markup.keyboard([['◀️ Назад']]).resize(),
+      );
+      return;
+    }
+
     // Обработка ответа на обращение (для поддержки)
     if (data.startsWith('reply_ticket_')) {
       const ticketId = parseInt(data.replace('reply_ticket_', ''));
       this.stateService.setState(ctx.from.id, {
-        action: 'support_reply_message',
+        action: 'in_ticket',
         data: { ticketId },
       });
       await ctx.answerCbQuery();
       await ctx.reply(
-        '💬 Введите текст ответа пользователю:',
-        Markup.removeKeyboard(),
+        '💬 Теперь все ваши сообщения будут автоматически отправляться пользователю.\nДля выхода из диалога нажмите "Закрыть диалог".',
+        Markup.keyboard([
+          ['✅ Закрыть обращение', '❌ Закрыть диалог'],
+        ]).resize(),
       );
       return;
     }
@@ -1123,22 +1258,17 @@ export class BotService {
               ticket.messages,
             );
 
+            // Устанавливаем состояние "в диалоге с тикетом"
+            this.stateService.setState(ctx.from.id, {
+              action: 'in_ticket',
+              data: { ticketId },
+            });
+
             await ctx.reply(
-              `📋 Обращение #${ticket.id}\nСтатус: ${ticket.status}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n\n${messages}`,
-              Markup.inlineKeyboard([
-                [
-                  Markup.button.callback(
-                    '💬 Ответить',
-                    `reply_ticket_${ticket.id}`,
-                  ),
-                ],
-                [
-                  Markup.button.callback(
-                    '✅ Закрыть обращение',
-                    `close_ticket_${ticket.id}`,
-                  ),
-                ],
-              ]),
+              `📋 Обращение #${ticket.id}\nСтатус: ${ticket.status}\nПользователь: @${ticket.user.username || ticket.user.firstName}\n\n${messages}\n\n💬 Теперь все ваши сообщения будут автоматически отправляться пользователю.\nДля выхода из диалога нажмите "Закрыть диалог".`,
+              Markup.keyboard([
+                ['✅ Закрыть обращение', '❌ Закрыть диалог'],
+              ]).resize(),
             );
             return;
           }
@@ -1367,9 +1497,9 @@ export class BotService {
         return;
       }
 
-      // === ОБРАБОТКА ОТВЕТА НА ОБРАЩЕНИЕ (ДЛЯ ПОДДЕРЖКИ) ===
+      // === ОБРАБОТКА ДИАЛОГА С ТИКЕТОМ (ДЛЯ ПОДДЕРЖКИ) ===
 
-      if (state?.action === 'support_reply_message') {
+      if (state?.action === 'in_ticket') {
         const user = await this.prisma.user.findUnique({
           where: { tgId: String(ctx.from.id) },
           include: { role: true },
@@ -1403,10 +1533,8 @@ export class BotService {
             `💬 Ответ от службы поддержки по обращению #${state.data.ticketId}:\n\n${ctx.message.text}`,
           );
 
-          this.stateService.deleteState(ctx.from.id);
-          const keyboard =
-            user.role.name === 'admin' ? ADMIN_KEYBOARD : SUPPORT_KEYBOARD;
-          await ctx.reply('✅ Ответ отправлен пользователю', keyboard);
+          // НЕ очищаем состояние - остаемся в диалоге
+          await ctx.reply('✅ Отправлено');
         }
         return;
       }

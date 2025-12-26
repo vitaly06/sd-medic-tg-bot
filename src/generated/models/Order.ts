@@ -29,20 +29,18 @@ export type AggregateOrder = {
 export type OrderAvgAggregateOutputType = {
   id: number | null
   userId: number | null
-  totalPrice: number | null
 }
 
 export type OrderSumAggregateOutputType = {
   id: number | null
   userId: number | null
-  totalPrice: number | null
 }
 
 export type OrderMinAggregateOutputType = {
   id: number | null
   userId: number | null
   status: string | null
-  totalPrice: number | null
+  totalPrice: string | null
   contactInfo: string | null
   deliveryAddress: string | null
   comment: string | null
@@ -54,7 +52,7 @@ export type OrderMaxAggregateOutputType = {
   id: number | null
   userId: number | null
   status: string | null
-  totalPrice: number | null
+  totalPrice: string | null
   contactInfo: string | null
   deliveryAddress: string | null
   comment: string | null
@@ -79,13 +77,11 @@ export type OrderCountAggregateOutputType = {
 export type OrderAvgAggregateInputType = {
   id?: true
   userId?: true
-  totalPrice?: true
 }
 
 export type OrderSumAggregateInputType = {
   id?: true
   userId?: true
-  totalPrice?: true
 }
 
 export type OrderMinAggregateInputType = {
@@ -215,7 +211,7 @@ export type OrderGroupByOutputType = {
   id: number
   userId: number
   status: string
-  totalPrice: number
+  totalPrice: string
   contactInfo: string | null
   deliveryAddress: string | null
   comment: string | null
@@ -250,7 +246,7 @@ export type OrderWhereInput = {
   id?: Prisma.IntFilter<"Order"> | number
   userId?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
-  totalPrice?: Prisma.FloatFilter<"Order"> | number
+  totalPrice?: Prisma.StringFilter<"Order"> | string
   contactInfo?: Prisma.StringNullableFilter<"Order"> | string | null
   deliveryAddress?: Prisma.StringNullableFilter<"Order"> | string | null
   comment?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -281,7 +277,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   userId?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
-  totalPrice?: Prisma.FloatFilter<"Order"> | number
+  totalPrice?: Prisma.StringFilter<"Order"> | string
   contactInfo?: Prisma.StringNullableFilter<"Order"> | string | null
   deliveryAddress?: Prisma.StringNullableFilter<"Order"> | string | null
   comment?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -315,7 +311,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Order"> | number
   userId?: Prisma.IntWithAggregatesFilter<"Order"> | number
   status?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  totalPrice?: Prisma.FloatWithAggregatesFilter<"Order"> | number
+  totalPrice?: Prisma.StringWithAggregatesFilter<"Order"> | string
   contactInfo?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   deliveryAddress?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   comment?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -325,7 +321,7 @@ export type OrderScalarWhereWithAggregatesInput = {
 
 export type OrderCreateInput = {
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -339,7 +335,7 @@ export type OrderUncheckedCreateInput = {
   id?: number
   userId: number
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -350,7 +346,7 @@ export type OrderUncheckedCreateInput = {
 
 export type OrderUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -364,7 +360,7 @@ export type OrderUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -377,7 +373,7 @@ export type OrderCreateManyInput = {
   id?: number
   userId: number
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -387,7 +383,7 @@ export type OrderCreateManyInput = {
 
 export type OrderUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -399,7 +395,7 @@ export type OrderUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -432,7 +428,6 @@ export type OrderCountOrderByAggregateInput = {
 export type OrderAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  totalPrice?: Prisma.SortOrder
 }
 
 export type OrderMaxOrderByAggregateInput = {
@@ -462,7 +457,6 @@ export type OrderMinOrderByAggregateInput = {
 export type OrderSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  totalPrice?: Prisma.SortOrder
 }
 
 export type OrderScalarRelationFilter = {
@@ -528,7 +522,7 @@ export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
 
 export type OrderCreateWithoutUserInput = {
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -540,7 +534,7 @@ export type OrderCreateWithoutUserInput = {
 export type OrderUncheckedCreateWithoutUserInput = {
   id?: number
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -582,7 +576,7 @@ export type OrderScalarWhereInput = {
   id?: Prisma.IntFilter<"Order"> | number
   userId?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.StringFilter<"Order"> | string
-  totalPrice?: Prisma.FloatFilter<"Order"> | number
+  totalPrice?: Prisma.StringFilter<"Order"> | string
   contactInfo?: Prisma.StringNullableFilter<"Order"> | string | null
   deliveryAddress?: Prisma.StringNullableFilter<"Order"> | string | null
   comment?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -592,7 +586,7 @@ export type OrderScalarWhereInput = {
 
 export type OrderCreateWithoutItemsInput = {
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -605,7 +599,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   id?: number
   userId: number
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -631,7 +625,7 @@ export type OrderUpdateToOneWithWhereWithoutItemsInput = {
 
 export type OrderUpdateWithoutItemsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -644,7 +638,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -655,7 +649,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
 export type OrderCreateManyUserInput = {
   id?: number
   status?: string
-  totalPrice: number
+  totalPrice: string
   contactInfo?: string | null
   deliveryAddress?: string | null
   comment?: string | null
@@ -665,7 +659,7 @@ export type OrderCreateManyUserInput = {
 
 export type OrderUpdateWithoutUserInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -677,7 +671,7 @@ export type OrderUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -689,7 +683,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.StringFieldUpdateOperationsInput | string
   contactInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -804,7 +798,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: number
     userId: number
     status: string
-    totalPrice: number
+    totalPrice: string
     contactInfo: string | null
     deliveryAddress: string | null
     comment: string | null
@@ -1238,7 +1232,7 @@ export interface OrderFieldRefs {
   readonly id: Prisma.FieldRef<"Order", 'Int'>
   readonly userId: Prisma.FieldRef<"Order", 'Int'>
   readonly status: Prisma.FieldRef<"Order", 'String'>
-  readonly totalPrice: Prisma.FieldRef<"Order", 'Float'>
+  readonly totalPrice: Prisma.FieldRef<"Order", 'String'>
   readonly contactInfo: Prisma.FieldRef<"Order", 'String'>
   readonly deliveryAddress: Prisma.FieldRef<"Order", 'String'>
   readonly comment: Prisma.FieldRef<"Order", 'String'>

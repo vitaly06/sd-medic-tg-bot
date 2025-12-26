@@ -509,6 +509,7 @@ export class AdminService {
       ['➕ Добавить товар'],
       ['✏️ Редактировать товар'],
       ['🗑 Удалить товар'],
+      ['📋 Просмотр всех товаров'],
       ['◀️ Назад'],
     ]).resize();
 
@@ -517,10 +518,63 @@ export class AdminService {
       return;
     }
 
+    // Группируем товары по категориям
+    const categorizedProducts: { [key: string]: any[] } = {};
+    const uncategorized: any[] = [];
+
+    products.forEach((product) => {
+      if (product.category) {
+        if (!categorizedProducts[product.category]) {
+          categorizedProducts[product.category] = [];
+        }
+        categorizedProducts[product.category].push(product);
+      } else {
+        uncategorized.push(product);
+      }
+    });
+
+    // Формируем компактное сообщение
+    let message = '📦 Товары:\n\n';
+
+    // Выводим по категориям
+    Object.keys(categorizedProducts).forEach((category) => {
+      message += `📂 ${category}:\n`;
+      categorizedProducts[category].forEach((product) => {
+        message += `  • ${product.name} - ${product.price} руб.\n`;
+      });
+      message += '\n';
+    });
+
+    // Выводим без категории
+    if (uncategorized.length > 0) {
+      message += `📂 Другое:\n`;
+      uncategorized.forEach((product) => {
+        message += `  • ${product.name} - ${product.price} руб.\n`;
+      });
+    }
+
+    message += `\n📊 Всего товаров: ${products.length}`;
+
+    await ctx.reply(message, keyboard);
+  }
+
+  async viewAllProducts(ctx: Context) {
+    const products = await this.productService.getAllProducts();
+
+    if (products.length === 0) {
+      await ctx.reply('Товары пока не добавлены');
+      return;
+    }
+
+    await ctx.reply('📦 Полная информация о товарах:');
+
     // Отправляем каждый товар с его первой картинкой
     for (const product of products) {
       const linkText = product.link ? `\n🔗 Ссылка: ${product.link}` : '';
-      const caption = `📦 ${product.name}\n\n💰 Цена: ${product.price} руб.\n\n📝 ${product.description}${linkText}\n\n🖼 Всего картинок: ${product.images.length}`;
+      const categoryText = product.category
+        ? `\n📂 Категория: ${product.category}`
+        : '';
+      const caption = `📦 ${product.name}\n\n💰 Цена: ${product.price} руб.${categoryText}\n\n📝 ${product.description}${linkText}\n\n🖼 Всего картинок: ${product.images.length}`;
 
       if (product.images && product.images.length > 0) {
         await ctx.replyWithPhoto(product.images[0], { caption });
@@ -529,7 +583,15 @@ export class AdminService {
       }
     }
 
-    await ctx.reply('Выберите действие:', keyboard);
+    await ctx.reply(
+      'Просмотр завершен',
+      Markup.keyboard([
+        ['➕ Добавить товар'],
+        ['✏️ Редактировать товар'],
+        ['🗑 Удалить товар'],
+        ['◀️ Назад'],
+      ]).resize(),
+    );
   }
 
   async startAddProduct(ctx: Context) {
@@ -616,10 +678,12 @@ export class AdminService {
 
   async handleAddProductPrice(ctx: Context, priceText: string, data: any) {
     if (!ctx.from) return;
-    const price = parseFloat(priceText);
 
-    if (isNaN(price) || price <= 0) {
-      await ctx.reply('❌ Неверная цена. Введите число больше 0:');
+    // Принимаем любую строку как цену
+    const price = priceText.trim();
+
+    if (!price) {
+      await ctx.reply('❌ Цена не может быть пустой. Введите цену:');
       return;
     }
 
@@ -796,9 +860,9 @@ export class AdminService {
     } else if (field === 'ссылка') {
       updateData.link = text.toLowerCase() === 'пропустить' ? null : text;
     } else if (field === 'цена') {
-      const price = parseFloat(text);
-      if (isNaN(price) || price <= 0) {
-        await ctx.reply('❌ Неверная цена. Введите число больше 0:');
+      const price = text.trim();
+      if (!price) {
+        await ctx.reply('❌ Цена не может быть пустой. Введите цену:');
         return false;
       }
       updateData.price = price;
@@ -1226,10 +1290,8 @@ export class AdminService {
       // Формируем данные для Excel
       const excelData = users.map((user) => {
         const totalOrders = user.orders.length;
-        const totalSpent = user.orders.reduce(
-          (sum, order) => sum + order.totalPrice,
-          0,
-        );
+        // Так как цена теперь строка, не суммируем
+        const totalSpent = 'См. заказы';
         const lastOrder =
           user.orders.length > 0
             ? new Date(

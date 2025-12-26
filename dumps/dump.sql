@@ -120,7 +120,7 @@ CREATE TABLE public."Order" (
     id integer NOT NULL,
     "userId" integer NOT NULL,
     status text DEFAULT 'pending'::text NOT NULL,
-    "totalPrice" double precision NOT NULL,
+    "totalPrice" text NOT NULL,
     "contactInfo" text,
     "deliveryAddress" text,
     comment text,
@@ -140,7 +140,7 @@ CREATE TABLE public."OrderItem" (
     "orderId" integer NOT NULL,
     "productId" integer NOT NULL,
     quantity integer NOT NULL,
-    price double precision NOT NULL,
+    price text NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -201,7 +201,7 @@ CREATE TABLE public."Product" (
     description text NOT NULL,
     images text[],
     link text,
-    price double precision NOT NULL,
+    price text NOT NULL,
     "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     category text
@@ -540,6 +540,8 @@ COPY public."CartItem" (id, "userId", "productId", quantity, "createdAt", "updat
 COPY public."Faq" (id, question, answer, "createdAt", "updatedAt") FROM stdin;
 2	вопрос 1	ответ 1	2025-12-18 14:44:52.455	2025-12-18 14:44:49.374
 3	вопрос 2	ответ 2	2025-12-18 14:45:08.27	2025-12-18 14:45:10.1
+4	Что такое электронный сертификат СФР?	Электронный сертификат (ЭС) — это не деньги на счёте и \nне бумажная справка, а уникальный цифровой документ, подтверждающий \nправо гражданина на получение технического средства реабилитации (ТСР) \nили услуги по его ремонту за счёт федерального бюджета. С 2023 года он \nстал основным механизмом обеспечения инвалидов и других льготников — \nвместо прямой выдачи ТСР со склада.\n\nБОЛЕЕ детально в нашем официальном блоге: https://sdmedik.ru/post/c74ebfec-f07d-4fd1-b141-b73bbc757975	2025-12-25 19:07:59.489	2025-12-25 19:07:59.489
+5	Как воспользоваться электронным сертификатом для получения средств реабилитации?	Электронный сертификат — это целевые средства на индивидуальном счету получателя средств реабилитации. 🙅‍♂️Не\n получится воспользоваться этими деньгами в обычном магазине, снять их с\n карты или сделать перевод. \n✅Эти средства можно потратить строго в \nаккредитованных торговых магазинах, на средства прописанные в \nиндивидуальной программе реабилитации.  \nТрата в аккредитованных торгующих организациях – это дополнительная безопасность сделки. 🦾 И появляется возможность выбора производителя, выбора наиболее \nудобных условий получения. \n\nОфициальный аккредитованный интернет-магазин с выставочными залами и складами в разных регионах: https://sdmedik.ru/catalog/certificate\nМожно\nвыбрать самостоятельно, либо направить список и запрос в официальный \nчат сайта, либо написать в поддержку официального бота, здесь: \n\n\nБОЛЕЕ детально в нашем официальном блоге: https://clck.ru/3R2n59	2025-12-25 19:36:18.921	2025-12-25 19:38:43.328
 \.
 
 
@@ -549,6 +551,8 @@ COPY public."Faq" (id, question, answer, "createdAt", "updatedAt") FROM stdin;
 
 COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliveryAddress", comment, "createdAt", "updatedAt") FROM stdin;
 1	2	pending	3000	+79510341677	Оренбург, самолётная 89	звонить заранее	2025-12-23 21:04:18.229	2025-12-23 21:04:18.229
+2	5	pending	5	35	туда же	сами привезите	2025-12-25 20:54:38.512	2025-12-25 20:54:38.512
+3	5	pending	100	898898	туда	\N	2025-12-25 21:11:35.94	2025-12-25 21:11:35.94
 \.
 
 
@@ -558,6 +562,8 @@ COPY public."Order" (id, "userId", status, "totalPrice", "contactInfo", "deliver
 
 COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt") FROM stdin;
 1	1	1	1	3000	2025-12-23 21:04:18.229
+2	2	2	5	1	2025-12-25 20:54:38.512
+3	3	3	10	10	2025-12-25 21:11:35.94
 \.
 
 
@@ -567,6 +573,8 @@ COPY public."OrderItem" (id, "orderId", "productId", quantity, price, "createdAt
 
 COPY public."Product" (id, name, description, images, link, price, "createdAt", "updatedAt", category) FROM stdin;
 1	test	gdfsgfgdfgfd	{AgACAgIAAxkBAAIGJWlF2B4hbRoCazBPglonF1k9-_sjAAIZE2sbzasxSi9hD33OLfctAQADAgADeQADNgQ}	\N	3000	2025-12-19 22:56:41.877	2025-12-19 22:56:41.877	\N
+2	Впитывающие простыни (пеленки) размером не менее 60 x 90 см (впитываемостью от 1200 до 1900 мл)	Одноразовые впитывающие пеленки, размер 60х90 см, в упаковке 30 шт; многослойная, гипоаллергенная основа.\n\n👉Подходят для приобретение по электронному сертификату СФР, а также за собственные средства безналичным и наличным рассчетом. \n\nДля покупки укажите в корзине чат-бота кол-во, способ оплаты и получения.  Либо самостоятельно оформите корзину на сайте sdmedik.ru, добавьте нужное кол-во.\n\n✅ На аккредитованном официальном сайте https://sdmedik.ru/ доступно приобретение по электронному сертификату Онлайн.\n Адреса ПВЗ указаны на сайте. \n🚀 По условия Бесплатной доставки уточняйте в чате поддержки.	{AgACAgIAAxkBAAIJeWlNodOb1N9umbRMR5nvf4N8eNT8AAI8DGsbXSNwSuW-BFqQZIVJAQADAgADeAADNgQ}	https://sdmedik.ru/product/certificate/f80e70a6-d353-463b-8907-14302745d5fc	1	2025-12-25 20:48:13.616	2025-12-25 20:48:13.616	пеленки
+3	Подгузники для взрослых, размер "S" (объем талии/бедер до 90 см), с полным влагопоглощением не менее 1400г	Подгузники Senso Med, Размер S, в упаковке 30 шт, на липучках, повышенной впитываемости. Дышащий, гипоаллергенный материал.\n👉Подходят для приобретения по электронному сертификату СФР; и за собственные средства безналичным и наличным расчётом. \n\nДля покупки укажите в корзине чат-бота кол-во, способ оплаты и получения.  Либо самостоятельно оформите корзину на официальном сайте sdmedik.ru.\n\n✅ На аккредитованном официальном сайте sdmedik.ru доступно приобретение по электронному сертификату Онлайн.\n \nАдреса ПВЗ указаны на сайте. \n🚀 По условия Бесплатной доставки уточняйте в чате поддержки.	{AgACAgIAAxkBAAIJxWlNp3BXkDoPf5uGEjPAEiL-j8xHAAJXDGsbXSNwSrlibHyoxECnAQADAgADeAADNgQ}	https://clck.ru/3R2osU	10	2025-12-25 21:07:43.794	2025-12-25 21:07:43.794	Подгузники
 \.
 
 
@@ -588,6 +596,17 @@ COPY public."Role" (id, name) FROM stdin;
 
 COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "createdAt") FROM stdin;
 3	2	2	+79510341677	{}	2025-12-23 21:02:00.928
+4	3	4	1	{}	2025-12-25 19:55:09.914
+5	4	5	А как будет выглядеть чат?	{}	2025-12-25 19:56:25.95
+6	4	4	ну вот так, переписька	{}	2025-12-25 19:56:37.372
+7	3	4	что хотел?	{}	2025-12-25 19:57:01.997
+8	3	4	нет оповещения от бота, что пришло сообщение	{}	2025-12-25 19:57:17.172
+9	4	4	ываыв	{}	2025-12-25 19:57:39.237
+10	4	5	У и	{}	2025-12-25 20:01:04.223
+11	4	5	Опл	{}	2025-12-25 20:01:10.034
+12	4	5	Ап	{}	2025-12-25 20:01:29.98
+13	4	5	и вот	{}	2025-12-25 20:16:31.002
+14	4	4	хорошо, что история сохранилась	{}	2025-12-25 20:17:12.411
 \.
 
 
@@ -596,7 +615,9 @@ COPY public."SupportMessage" (id, "ticketId", "userId", message, photos, "create
 --
 
 COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessages", "hasUnreadAdminMessages", "createdAt", "updatedAt", "closedAt") FROM stdin;
-2	2	open	\N	t	f	2025-12-18 14:38:15.081	2025-12-23 21:02:00.937	\N
+3	4	closed	\N	f	t	2025-12-25 02:34:36.99	2025-12-25 20:01:58.446	2025-12-25 20:01:58.446
+4	5	closed	\N	f	t	2025-12-25 19:54:17.58	2025-12-25 20:18:00.434	2025-12-25 20:18:00.433
+2	2	open	\N	f	f	2025-12-18 14:38:15.081	2025-12-25 20:56:30.094	\N
 \.
 
 
@@ -607,6 +628,8 @@ COPY public."SupportTicket" (id, "userId", status, subject, "hasUnreadUserMessag
 COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone, "isBlocked", "blockedAt", "blockedReason", "roleId", "createdAt", "updatedAt") FROM stdin;
 2	8370051487	Максим	printbook77	Абелов	Оренбург	\N	f	\N	\N	1	2025-12-18 14:37:34.043	2025-12-18 14:37:37.878
 3	916264231	Виталек	ciganit	\N	Оренбург	\N	f	\N	\N	3	2025-12-19 22:55:13.184	2025-12-19 22:55:18.065
+4	906536330	Ант	PlanGus_PRmanager	\N	Краснодар	\N	f	\N	\N	3	2025-12-25 02:33:16.429	2025-12-25 02:33:32.941
+5	7042953860	Puls chief manag	Puls5_chief	\N	Оренбург	\N	f	\N	\N	1	2025-12-25 19:44:27.237	2025-12-25 19:44:38.229
 \.
 
 
@@ -617,6 +640,8 @@ COPY public."User" (id, "tgId", "firstName", username, "lastName", region, phone
 COPY public."UserProfile" (id, "userId", "mseDate", "firstTsrDate", "tsrMethod", "tsrTypes", "tsrPeriodMonths", "nextTsrDate", "reminderDaysBefore", "lastReminderSent", "notificationsEnabled", "additionalData", "createdAt", "updatedAt") FROM stdin;
 2	2	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-18 14:37:45.746	2025-12-18 14:37:45.746
 3	3	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-19 22:55:25.086	2025-12-19 22:55:25.086
+4	4	\N	\N	\N	\N	3	\N	21	\N	t	\N	2025-12-25 02:33:49.814	2025-12-25 02:33:49.814
+5	5	1999-01-11 00:00:00	2008-11-11 00:00:00	сертификат	Трость, коляска, телевизор	3	2025-12-28 00:00:00	1	\N	t	\N	2025-12-25 19:45:02.483	2025-12-25 19:54:06.283
 \.
 
 
@@ -632,35 +657,35 @@ COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs,
 -- Name: CartItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."CartItem_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."CartItem_id_seq"', 4, true);
 
 
 --
 -- Name: Faq_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Faq_id_seq"', 3, true);
+SELECT pg_catalog.setval('public."Faq_id_seq"', 5, true);
 
 
 --
 -- Name: OrderItem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."OrderItem_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."OrderItem_id_seq"', 3, true);
 
 
 --
 -- Name: Order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Order_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."Order_id_seq"', 3, true);
 
 
 --
 -- Name: Product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Product_id_seq"', 1, true);
+SELECT pg_catalog.setval('public."Product_id_seq"', 3, true);
 
 
 --
@@ -674,28 +699,28 @@ SELECT pg_catalog.setval('public."Role_id_seq"', 4, true);
 -- Name: SupportMessage_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 3, true);
+SELECT pg_catalog.setval('public."SupportMessage_id_seq"', 14, true);
 
 
 --
 -- Name: SupportTicket_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."SupportTicket_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."SupportTicket_id_seq"', 4, true);
 
 
 --
 -- Name: UserProfile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."UserProfile_id_seq"', 3, true);
+SELECT pg_catalog.setval('public."UserProfile_id_seq"', 5, true);
 
 
 --
 -- Name: User_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."User_id_seq"', 3, true);
+SELECT pg_catalog.setval('public."User_id_seq"', 5, true);
 
 
 --

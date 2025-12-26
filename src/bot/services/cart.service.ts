@@ -88,10 +88,11 @@ export class CartService {
       throw new Error('Корзина пуста');
     }
 
-    const totalPrice = cartItems.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0,
-    );
+    // Собираем информацию о товарах для отображения
+    const itemsInfo = cartItems
+      .map((item) => `${item.product.name} x${item.quantity}`)
+      .join(', ');
+    const totalPrice = `См. состав заказа: ${itemsInfo}`;
 
     const order = await this.prisma.order.create({
       data: {
@@ -130,23 +131,20 @@ export class CartService {
       return '🛒 Ваша корзина пуста';
     }
 
-    let total = 0;
     const items = cartItems
       .map((item, index) => {
-        const itemTotal = item.product.price * item.quantity;
-        total += itemTotal;
-        return `${index + 1}. ${item.product.name}\n   Цена: ${item.product.price} руб. × ${item.quantity} = ${itemTotal} руб.`;
+        return `${index + 1}. ${item.product.name}\n   Цена: ${item.product.price} руб. × ${item.quantity}`;
       })
       .join('\n\n');
 
-    return `🛒 Ваша корзина:\n\n${items}\n\n💰 Итого: ${total} руб.`;
+    return `🛒 Ваша корзина:\n\n${items}\n\n💰 Для уточнения итоговой стоимости свяжитесь с менеджером`;
   }
 
   formatOrder(order: any) {
     const items = order.items
       .map(
         (item: any, index: number) =>
-          `${index + 1}. ${item.product.name} × ${item.quantity} = ${item.price * item.quantity} руб.`,
+          `${index + 1}. ${item.product.name} × ${item.quantity} (${item.price} руб.)`,
       )
       .join('\n');
 
@@ -156,7 +154,7 @@ export class CartService {
       details += `\n📍 Адрес доставки: ${order.deliveryAddress}`;
     if (order.comment) details += `\n💬 Комментарий: ${order.comment}`;
 
-    return `📦 Заказ #${order.id}\n\n${items}\n\n💰 Итого: ${order.totalPrice} руб.${details}`;
+    return `📦 Заказ #${order.id}\n\n${items}\n\n💰 Итоговая стоимость будет уточнена менеджером${details}`;
   }
 
   async getOrderById(orderId: number) {
